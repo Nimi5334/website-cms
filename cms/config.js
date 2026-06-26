@@ -20,14 +20,9 @@ export const templateUrl       = () => new URL("../template.html",     location.
 export const EDIT_PASSWORD = "";
 
 // ── GitHub publish → Vercel auto-deploy ──────────────────────────────────────
-// When GITHUB_TOKEN is set the primary "פרסם לאינטרנט" button pushes
-// index.html to the repo and Vercel deploys within seconds.
-// Leave GITHUB_TOKEN = "" to use download-file mode only.
+// "פרסם לאינטרנט" calls /api/publish (a Vercel serverless function).
+// The function reads GITHUB_TOKEN from Vercel environment variables —
+// the token is never stored in this file or in the git repo.
 //
-// Recommended: fine-grained PAT (Settings → Developer settings →
-// Fine-grained tokens) with Contents: Read and Write on this repo only.
-export const GITHUB_TOKEN  = "";              // ← paste your PAT here
-export const GITHUB_OWNER  = "Nimi5334";      // GitHub username / org
-export const GITHUB_REPO   = "website-cms";   // repo created for this
-export const GITHUB_BRANCH = "main";
-export const GITHUB_FILE   = "index.html";    // file path inside the repo
+// To configure: Vercel dashboard → project → Settings → Environment Variables
+// Add: GITHUB_TOKEN = <your fine-grained PAT with Contents: Read+Write>

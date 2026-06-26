@@ -13,10 +13,7 @@
  * No content ever leaves the browser on its own. Drafts persist in localStorage.
  * The published index.html is the deliverable the seller hosts on any static host.
  */
-import {
-  SITE_ID, STORAGE_KEY, starterContentUrl, templateUrl, EDIT_PASSWORD,
-  GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH, GITHUB_FILE,
-} from "./config.js";
+import { SITE_ID, STORAGE_KEY, starterContentUrl, templateUrl, EDIT_PASSWORD } from "./config.js";
 import {
   FONT_CHOICES, COLOR_LABELS, TAG_OPTIONS, SOCIAL_OPTIONS,
   SECTION_LABELS, ADDABLE_SECTIONS, DAY_NAMES, LABELS as L,
@@ -143,9 +140,7 @@ function renderEditor() {
   const ghBtn   = el(“button”, { class: “btn btn-primary”, onclick: publishToGitHub }, “פרסם לאינטרנט”);
   const dlBtn   = el(“button”, { class: “btn”, onclick: downloadFile }, L.publish);
   const note    = el(“span”, { class: “muted”, style: “font-size:.82rem” },
-    GITHUB_TOKEN
-      ? “פרסם לאינטרנט ← Vercel מעדכן את האתר תוך שניות.”
-      : “הורדת קובץ ← שלחו למוכר האתר לפרסום.”);
+    “פרסם לאינטרנט ← Vercel מעדכן את האתר תוך שניות.”);
   const savebar = el(“div”, { class: “savebar” }, ghBtn, dlBtn, saveBtn, note);
 
   const left = el("div", {}, editor, savebar);
@@ -631,40 +626,22 @@ async function downloadFile() {
 
 async function publishToGitHub() {
   if (state.busy) return;
-  if (!GITHUB_TOKEN) {
-    setStatus("GitHub Token לא מוגדר — השתמשו ב\"הורדת קובץ\" במקום.", "warn");
-    return;
-  }
   state.busy = true;
-  setStatus("מפרסם לגיטהאב…", "");
+  setStatus("מפרסם לאינטרנט…", "");
   try {
     saveDraft(state.site);
     const html = await buildHtml();
 
-    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
-    const headers = {
-      "Authorization": `Bearer ${GITHUB_TOKEN}`,
-      "Accept": "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      "Content-Type": "application/json",
-    };
-
-    // Fetch current file SHA — required when updating an existing file.
-    let sha;
-    const getRes = await fetch(apiUrl, { headers });
-    if (getRes.ok) sha = (await getRes.json()).sha;
-
-    // GitHub API requires base64-encoded content (UTF-8 safe approach).
-    const arr = new TextEncoder().encode(html);
-    const content = btoa(Array.from(arr, (b) => String.fromCharCode(b)).join(""));
-
-    const body = { message: "עדכון תוכן האתר", content, branch: GITHUB_BRANCH };
-    if (sha) body.sha = sha;
-
-    const putRes = await fetch(apiUrl, { method: "PUT", headers, body: JSON.stringify(body) });
-    if (!putRes.ok) {
-      const errBody = await putRes.json().catch(() => ({}));
-      throw new Error(errBody.message || "HTTP " + putRes.status);
+    // Calls the Vercel serverless function (/api/publish) which holds the
+    // GitHub token securely in environment variables — never in the browser.
+    const res = await fetch("/api/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ html }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || err.message || "HTTP " + res.status);
     }
 
     setStatus("האתר פורסם ✓ — Vercel מעדכן תוך שניות", "ok");
