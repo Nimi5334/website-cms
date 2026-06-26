@@ -44,6 +44,7 @@ const state = {
   dirty: false,
   busy: false,
   unlocked: !EDIT_PASSWORD,
+  activePanel: "general",
 };
 
 /* ---------------- persistence (browser only) ---------------- */
@@ -113,8 +114,20 @@ async function boot() {
   }
 }
 
+/* ---------------- nav config ---------------- */
+const NAV_PANELS = [
+  { key: "general",  label: L.general },
+  { key: "theme",    label: L.theme },
+  { key: "nav",      label: L.navigation },
+  { key: "sections", label: L.sections },
+  { key: "footer",   label: L.footer },
+];
+
 /* ---------------- editor shell ---------------- */
 let $previewFrame = null;
+let $sidebar = null;
+let $editorContent = null;
+
 function renderEditor() {
   const site = state.site;
   $status = el("div", { class: "status-msg" });
@@ -129,13 +142,13 @@ function renderEditor() {
     EDIT_PASSWORD ? el("button", { class: "btn btn-sm", onclick: () => { state.unlocked = false; renderLogin(); } }, L.logout) : null
   );
 
-  const editor = el("div", { class: "editor" },
-    panelGeneral(site),
-    panelTheme(site),
-    panelNav(site),
-    panelSections(site),
-    panelFooter(site)
-  );
+  // Sidebar nav
+  $sidebar = el("nav", { class: "nav-sidebar" });
+  buildSidebarNav();
+
+  // Content area
+  $editorContent = el("div", { class: "editor" });
+  renderActivePanel();
 
   const saveBtn = el("button", { class: "btn", onclick: save }, L.save);
   const ghBtn   = el("button", { class: "btn btn-primary", onclick: publishToGitHub }, "פרסם לאינטרנט");
@@ -144,11 +157,41 @@ function renderEditor() {
     "פרסם לאינטרנט ← Vercel מעדכן את האתר תוך שניות.");
   const savebar = el("div", { class: "savebar" }, ghBtn, dlBtn, saveBtn, note);
 
-  const left = el("div", {}, editor, savebar);
+  const mainArea = el("div", { class: "main-area" }, $editorContent, savebar);
   const preview = el("div", { class: "preview-pane hide" }, el("iframe", { title: "preview" }));
   $previewFrame = preview.querySelector("iframe");
 
-  $app.replaceChildren(topbar, el("div", { class: "shell", id: "shell" }, left, preview));
+  $app.replaceChildren(topbar, el("div", { class: "shell", id: "shell" }, $sidebar, mainArea, preview));
+}
+
+function buildSidebarNav() {
+  if (!$sidebar) return;
+  $sidebar.replaceChildren();
+  for (const p of NAV_PANELS) {
+    const isActive = state.activePanel === p.key;
+    const item = el("button", {
+      class: "nav-item" + (isActive ? " active" : ""),
+      onclick: () => {
+        state.activePanel = p.key;
+        buildSidebarNav();
+        renderActivePanel();
+      },
+    }, p.label);
+    $sidebar.append(item);
+  }
+}
+
+function renderActivePanel() {
+  if (!$editorContent) return;
+  const site = state.site;
+  $editorContent.replaceChildren();
+  switch (state.activePanel) {
+    case "general":  $editorContent.append(panelGeneral(site));  break;
+    case "theme":    $editorContent.append(panelTheme(site));    break;
+    case "nav":      $editorContent.append(panelNav(site));      break;
+    case "sections": $editorContent.append(panelSections(site)); break;
+    case "footer":   $editorContent.append(panelFooter(site));   break;
+  }
 }
 
 let previewDebounce;
@@ -284,8 +327,8 @@ function move(arr, i, dir) { const j = i + dir; if (j < 0 || j >= arr.length) re
 
 /* ---------------- panels ---------------- */
 function panel(titleText, ...body) {
-  return el("details", { class: "panel", open: true },
-    el("summary", {}, titleText),
+  return el("div", { class: "panel" },
+    el("div", { class: "panel-heading" }, titleText),
     el("div", { class: "panel-body" }, ...body)
   );
 }
