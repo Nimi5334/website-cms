@@ -1,11 +1,11 @@
 /**
- * Truck Site Kit ג€” CMS editor (vanilla JS, NO backend / NO API).
+ * Truck Site Kit — CMS editor (vanilla JS, NO backend / NO API).
  *
  * Flow for the business owner:
  *   1. Open this page (optionally behind a soft local password).
- *   2. Edit everything ג€” brand, colors, fonts, hero, story, menu, gallery, video,
+ *   2. Edit everything — brand, colors, fonts, hero, story, menu, gallery, video,
  *      locations & hours, social, footer. Live preview on the side.
- *   3. Click "׳₪׳¨׳¡׳•׳ ׳”׳׳×׳¨" (Publish): the renderer runs in THIS browser and a
+ *   3. Click "פרסום האתר" (Publish): the renderer runs in THIS browser and a
  *      finished, fully self-contained index.html downloads. Images and video are
  *      baked in as data-URIs; the content model is embedded so the editor can
  *      re-open the site later (Import).
@@ -79,10 +79,10 @@ function renderLogin(errMsg) {
     onsubmit: (e) => {
       e.preventDefault();
       if (pw.value === EDIT_PASSWORD) { state.unlocked = true; boot(); }
-      else { msg.textContent = "׳¡׳™׳¡׳׳” ׳©׳’׳•׳™׳”."; }
+      else { msg.textContent = "סיסמה שגויה."; }
     },
   },
-    el("label", { class: "muted", style: "font-size:.85rem" }, `${L.password} ֲ· ${SITE_ID}`),
+    el("label", { class: "muted", style: "font-size:.85rem" }, `${L.password} · ${SITE_ID}`),
     pw, btn, msg
   );
   $app.replaceChildren(
@@ -108,8 +108,8 @@ async function boot() {
     console.error("Boot error:", err);
     $app.replaceChildren(el("div", { class: "login-wrap" },
       el("div", { class: "card", style: "padding:24px" },
-        el("p", {}, "׳©׳’׳™׳׳” ׳‘׳˜׳¢׳™׳ ׳× ׳”׳×׳•׳›׳ ׳”׳”׳×׳—׳׳×׳™: " + err.message),
-        el("p", { class: "muted", style: "font-size:.85rem" }, "׳•׳“׳׳• ׳©׳”׳§׳•׳‘׳¥ starter/site.json ׳§׳™׳™׳ ׳•׳©׳”׳¢׳•׳¨׳ ׳׳•׳’׳© ׳׳©׳¨׳× (׳׳ file://)."))));
+        el("p", {}, "שגיאה בטעינת התוכן ההתחלתי: " + err.message),
+        el("p", { class: "muted", style: "font-size:.85rem" }, "ודאו שהקובץ starter/site.json קיים ושהעורך מוגש משרת (לא file://)."))));
   }
 }
 
@@ -137,12 +137,12 @@ function renderEditor() {
     panelFooter(site)
   );
 
-  const saveBtn = el(ג€buttonג€, { class: ג€btnג€, onclick: save }, L.save);
-  const ghBtn   = el(ג€buttonג€, { class: ג€btn btn-primaryג€, onclick: publishToGitHub }, ג€׳₪׳¨׳¡׳ ׳׳׳™׳ ׳˜׳¨׳ ׳˜ג€);
-  const dlBtn   = el(ג€buttonג€, { class: ג€btnג€, onclick: downloadFile }, L.publish);
-  const note    = el(ג€spanג€, { class: ג€mutedג€, style: ג€font-size:.82remג€ },
-    ג€׳₪׳¨׳¡׳ ׳׳׳™׳ ׳˜׳¨׳ ׳˜ ג† Vercel ׳׳¢׳“׳›׳ ׳׳× ׳”׳׳×׳¨ ׳×׳•׳ ׳©׳ ׳™׳•׳×.ג€);
-  const savebar = el(ג€divג€, { class: ג€savebarג€ }, ghBtn, dlBtn, saveBtn, note);
+  const saveBtn = el(“button”, { class: “btn”, onclick: save }, L.save);
+  const ghBtn   = el(“button”, { class: “btn btn-primary”, onclick: publishToGitHub }, “פרסם לאינטרנט”);
+  const dlBtn   = el(“button”, { class: “btn”, onclick: downloadFile }, L.publish);
+  const note    = el(“span”, { class: “muted”, style: “font-size:.82rem” },
+    “פרסם לאינטרנט ← Vercel מעדכן את האתר תוך שניות.”);
+  const savebar = el(“div”, { class: “savebar” }, ghBtn, dlBtn, saveBtn, note);
 
   const left = el("div", {}, editor, savebar);
   const preview = el("div", { class: "preview-pane hide" }, el("iframe", { title: "preview" }));
@@ -154,7 +154,7 @@ function renderEditor() {
 let previewDebounce;
 function markDirty() {
   state.dirty = true;
-  setStatus("׳™׳© ׳©׳™׳ ׳•׳™׳™׳ ׳©׳׳ ׳ ׳©׳׳¨׳•", "warn");
+  setStatus("יש שינויים שלא נשמרו", "warn");
   if (previewOn) { clearTimeout(previewDebounce); previewDebounce = setTimeout(refreshPreview, 400); }
 }
 
@@ -209,20 +209,20 @@ function imageField(obj, key, label, hint) {
   const setThumb = () => { thumb.src = obj[key] ? resolveAssetForPreview(obj[key]) : ""; };
   setThumb();
   const file = el("input", { type: "file", accept: "image/*", style: "display:none" });
-  const upBtn = el("button", { class: "btn btn-sm", type: "button", onclick: () => file.click() }, "׳”׳¢׳׳׳× ׳×׳׳•׳ ׳”");
-  const pathInput = el("input", { type: "text", value: obj[key] && !isInline(obj[key]) ? obj[key] : (obj[key] ? "(׳×׳׳•׳ ׳” ׳”׳•׳˜׳׳¢׳”)" : "") });
+  const upBtn = el("button", { class: "btn btn-sm", type: "button", onclick: () => file.click() }, "העלאת תמונה");
+  const pathInput = el("input", { type: "text", value: obj[key] && !isInline(obj[key]) ? obj[key] : (obj[key] ? "(תמונה הוטמעה)" : "") });
   pathInput.style.cssText = "flex:1";
   pathInput.addEventListener("input", () => { obj[key] = pathInput.value; markDirty(); setThumb(); });
   file.addEventListener("change", async () => {
     if (!file.files[0]) return;
-    upBtn.disabled = true; upBtn.textContent = "׳׳¢׳׳”ג€¦";
+    upBtn.disabled = true; upBtn.textContent = "מעלה…";
     try {
       const rel = await uploadImage(file.files[0]);
-      obj[key] = rel; pathInput.value = "(׳×׳׳•׳ ׳” ׳”׳•׳˜׳׳¢׳”)"; setThumb(); markDirty();
-      setStatus("׳”׳×׳׳•׳ ׳” ׳ ׳˜׳¢׳ ׳” ג“", "ok");
+      obj[key] = rel; pathInput.value = "(תמונה הוטמעה)"; setThumb(); markDirty();
+      setStatus("התמונה נטענה ✓", "ok");
     } catch (err) {
-      setStatus("׳”׳¢׳׳׳× ׳×׳׳•׳ ׳” ׳ ׳›׳©׳׳”: " + err.message, "err");
-    } finally { upBtn.disabled = false; upBtn.textContent = "׳”׳¢׳׳׳× ׳×׳׳•׳ ׳”"; }
+      setStatus("העלאת תמונה נכשלה: " + err.message, "err");
+    } finally { upBtn.disabled = false; upBtn.textContent = "העלאת תמונה"; }
   });
   return el("div", { class: "field" },
     el("label", {}, label),
@@ -233,24 +233,24 @@ function imageField(obj, key, label, hint) {
 
 function videoField(obj, key, label) {
   const file = el("input", { type: "file", accept: "video/*", style: "display:none" });
-  const upBtn = el("button", { class: "btn btn-sm", type: "button", onclick: () => file.click() }, "׳”׳¢׳׳׳× ׳•׳™׳“׳׳•");
-  const pathInput = el("input", { type: "text", value: obj[key] && !isInline(obj[key]) ? obj[key] : (obj[key] ? "(׳•׳™׳“׳׳• ׳”׳•׳˜׳׳¢)" : "") });
+  const upBtn = el("button", { class: "btn btn-sm", type: "button", onclick: () => file.click() }, "העלאת וידאו");
+  const pathInput = el("input", { type: "text", value: obj[key] && !isInline(obj[key]) ? obj[key] : (obj[key] ? "(וידאו הוטמע)" : "") });
   pathInput.style.cssText = "flex:1";
   pathInput.addEventListener("input", () => { obj[key] = pathInput.value; markDirty(); });
   const note = el("div", { class: "hint" }, "");
   file.addEventListener("change", async () => {
     if (!file.files[0]) return;
     const f = file.files[0];
-    upBtn.disabled = true; upBtn.textContent = "׳˜׳•׳¢׳ג€¦";
+    upBtn.disabled = true; upBtn.textContent = "טוען…";
     try {
       if (f.size > 8 * 1024 * 1024)
-        note.textContent = "׳©׳™׳׳• ׳׳‘: ׳•׳™׳“׳׳• ׳©׳ " + Math.round(f.size / 1048576) + "MB ׳™׳’׳“׳™׳ ׳׳׳•׳“ ׳׳× ׳§׳•׳‘׳¥ ׳”׳׳×׳¨. ׳׳•׳׳׳¥ ׳¢׳“ ~8MB.";
+        note.textContent = "שימו לב: וידאו של " + Math.round(f.size / 1048576) + "MB יגדיל מאוד את קובץ האתר. מומלץ עד ~8MB.";
       obj[key] = await fileToDataURL(f);
-      pathInput.value = "(׳•׳™׳“׳׳• ׳”׳•׳˜׳׳¢)"; markDirty();
-      setStatus("׳”׳•׳™׳“׳׳• ׳ ׳˜׳¢׳ ג“", "ok");
+      pathInput.value = "(וידאו הוטמע)"; markDirty();
+      setStatus("הוידאו נטען ✓", "ok");
     } catch (err) {
-      setStatus("׳˜׳¢׳™׳ ׳× ׳•׳™׳“׳׳• ׳ ׳›׳©׳׳”: " + err.message, "err");
-    } finally { upBtn.disabled = false; upBtn.textContent = "׳”׳¢׳׳׳× ׳•׳™׳“׳׳•"; }
+      setStatus("טעינת וידאו נכשלה: " + err.message, "err");
+    } finally { upBtn.disabled = false; upBtn.textContent = "העלאת וידאו"; }
   });
   return el("div", { class: "field" },
     el("label", {}, label),
@@ -270,7 +270,7 @@ function repeater(arr, { title, make, render, addLabel }) {
         el("div", { class: "icon-btns" },
           el("button", { class: "btn btn-sm", type: "button", disabled: i === 0, onclick: () => { move(arr, i, -1); draw(); markDirty(); } }, L.up),
           el("button", { class: "btn btn-sm", type: "button", disabled: i === arr.length - 1, onclick: () => { move(arr, i, 1); draw(); markDirty(); } }, L.down),
-          el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { arr.splice(i, 1); draw(); markDirty(); } }, "ג•")
+          el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { arr.splice(i, 1); draw(); markDirty(); } }, "✕")
         )
       );
       wrap.append(el("div", { class: "repeater-item" }, head, render(item, i)));
@@ -299,7 +299,7 @@ function panelGeneral(site) {
     textField(site.meta, "title", L.site_title),
     textField(site.meta, "description", L.site_desc, { area: true, rows: 2 }),
     el("div", { class: "row" },
-      imageField(site.meta, "favicon", L.favicon, "׳§׳•׳‘׳¥ ׳§׳˜׳, ׳¨׳¦׳•׳™ SVG ׳׳• PNG"),
+      imageField(site.meta, "favicon", L.favicon, "קובץ קטן, רצוי SVG או PNG"),
       colorField(site.meta, "themeColor", L.theme_color))
   );
 }
@@ -316,44 +316,44 @@ function panelTheme(site) {
   );
   const fontOpts = FONT_CHOICES.map((f) => ({ value: f.family, label: f.label }));
   site.theme.fonts = site.theme.fonts || {};
-  const headSel = selectField(site.theme.fonts, "head", "׳’׳•׳₪׳ ׳›׳•׳×׳¨׳•׳×", fontOpts);
-  const bodySel = selectField(site.theme.fonts, "body", "׳’׳•׳₪׳ ׳˜׳§׳¡׳˜", fontOpts);
+  const headSel = selectField(site.theme.fonts, "head", "גופן כותרות", fontOpts);
+  const bodySel = selectField(site.theme.fonts, "body", "גופן טקסט", fontOpts);
   const syncFonts = () => { site.meta.fontsHref = buildFontsHref(site.theme.fonts); markDirty(); };
   headSel.querySelector("select").addEventListener("change", syncFonts);
   bodySel.querySelector("select").addEventListener("change", syncFonts);
   return panel(L.theme, swatches, el("div", { class: "row" }, headSel, bodySel),
-    textField(site.theme, "radius", L.radius, { hint: "׳׳“׳•׳’׳׳” 14px" }));
+    textField(site.theme, "radius", L.radius, { hint: "לדוגמה 14px" }));
 }
 
 function panelNav(site) {
   site.nav = site.nav || { links: [] };
   site.nav.links = site.nav.links || [];
   const links = repeater(site.nav.links, {
-    title: (l) => l.label || "׳§׳™׳©׳•׳¨",
-    make: () => ({ label: "׳§׳™׳©׳•׳¨ ׳—׳“׳©", href: "#" }),
-    render: (l) => el("div", { class: "row" }, textField(l, "label", "׳˜׳§׳¡׳˜"), textField(l, "href", "׳§׳™׳©׳•׳¨")),
+    title: (l) => l.label || "קישור",
+    make: () => ({ label: "קישור חדש", href: "#" }),
+    render: (l) => el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "קישור")),
   });
   site.nav.cta = site.nav.cta || { label: "", href: "#" };
   return panel(L.navigation, links,
-    el("p", { class: "muted", style: "margin-top:14px;font-size:.85rem" }, "׳›׳₪׳×׳•׳¨ ׳‘׳•׳׳˜ (׳׳ ׳—׳•׳‘׳”):"),
-    el("div", { class: "row" }, textField(site.nav.cta, "label", "׳˜׳§׳¡׳˜ ׳”׳›׳₪׳×׳•׳¨"), textField(site.nav.cta, "href", "׳§׳™׳©׳•׳¨")));
+    el("p", { class: "muted", style: "margin-top:14px;font-size:.85rem" }, "כפתור בולט (לא חובה):"),
+    el("div", { class: "row" }, textField(site.nav.cta, "label", "טקסט הכפתור"), textField(site.nav.cta, "href", "קישור")));
 }
 
 function panelFooter(site) {
   site.footer = site.footer || { links: [] };
   site.footer.links = site.footer.links || [];
   const links = repeater(site.footer.links, {
-    title: (l) => l.label || "׳§׳™׳©׳•׳¨",
-    make: () => ({ label: "׳§׳™׳©׳•׳¨", href: "#" }),
+    title: (l) => l.label || "קישור",
+    make: () => ({ label: "קישור", href: "#" }),
     render: (l) => el("div", {},
-      el("div", { class: "row" }, textField(l, "label", "׳˜׳§׳¡׳˜"), textField(l, "href", "׳§׳™׳©׳•׳¨")),
-      el("label", { class: "toggle" }, checkbox(l, "external"), "׳ ׳₪׳×׳— ׳‘׳׳©׳•׳ ׳™׳× ׳—׳“׳©׳”")),
+      el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "קישור")),
+      el("label", { class: "toggle" }, checkbox(l, "external"), "נפתח בלשונית חדשה")),
   });
   return panel(L.footer,
-    imageField(site.footer, "logo", "׳׳•׳’׳• ׳‘׳×׳—׳×׳™׳×"),
-    textField(site.footer, "copyright", "׳–׳›׳•׳™׳•׳× ׳™׳•׳¦׳¨׳™׳"),
-    textField(site.footer, "regions", "׳˜׳§׳¡׳˜ ׳ ׳•׳¡׳£"),
-    el("p", { class: "muted", style: "font-size:.85rem" }, "׳§׳™׳©׳•׳¨׳™׳ ׳‘׳×׳—׳×׳™׳×:"), links);
+    imageField(site.footer, "logo", "לוגו בתחתית"),
+    textField(site.footer, "copyright", "זכויות יוצרים"),
+    textField(site.footer, "regions", "טקסט נוסף"),
+    el("p", { class: "muted", style: "font-size:.85rem" }, "קישורים בתחתית:"), links);
 }
 
 /* ---------------- sections ---------------- */
@@ -370,7 +370,7 @@ function panelSections(site) {
         el("div", { class: "icon-btns" },
           el("button", { class: "btn btn-sm", type: "button", disabled: i === 0, onclick: () => { move(site.sections, i, -1); draw(); markDirty(); } }, L.up),
           el("button", { class: "btn btn-sm", type: "button", disabled: i === site.sections.length - 1, onclick: () => { move(site.sections, i, 1); draw(); markDirty(); } }, L.down),
-          el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { if (confirm("׳׳׳—׳•׳§ ׳׳× ׳”׳׳–׳•׳¨ ׳”׳–׳”?")) { site.sections.splice(i, 1); draw(); markDirty(); } } }, "ג•"))
+          el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { if (confirm("למחוק את האזור הזה?")) { site.sections.splice(i, 1); draw(); markDirty(); } } }, "✕"))
       );
       container.append(el("div", { class: "repeater-item" }, head, sectionEditor(s)));
     });
@@ -390,25 +390,25 @@ function sectionEditor(s) {
     case "hero":
       d.ctas = d.ctas || [];
       return el("div", {},
-        imageField(d, "logo", "׳׳•׳’׳•"),
-        imageField(d, "background", "׳×׳׳•׳ ׳× ׳¨׳§׳¢", "׳׳•׳₪׳™׳¢׳” ׳׳׳—׳•׳¨׳™ ׳”׳›׳•׳×׳¨׳×. ׳¨׳™׳§ = ׳¨׳§׳¢ ׳ ׳§׳™ ׳‘׳¦׳‘׳¢."),
-        textField(d, "headline", "׳›׳•׳×׳¨׳×", { area: true, rows: 2, hint: "׳©׳•׳¨׳” ׳—׳“׳©׳” = ׳׳¢׳‘׳¨ ׳©׳•׳¨׳”" }),
-        textField(d, "lead", "׳×׳×-׳›׳•׳×׳¨׳×", { area: true, rows: 2 }),
-        el("p", { class: "muted", style: "font-size:.85rem" }, "׳›׳₪׳×׳•׳¨׳™׳:"),
+        imageField(d, "logo", "לוגו"),
+        imageField(d, "background", "תמונת רקע", "מופיעה מאחורי הכותרת. ריק = רקע נקי בצבע."),
+        textField(d, "headline", "כותרת", { area: true, rows: 2, hint: "שורה חדשה = מעבר שורה" }),
+        textField(d, "lead", "תת-כותרת", { area: true, rows: 2 }),
+        el("p", { class: "muted", style: "font-size:.85rem" }, "כפתורים:"),
         repeater(d.ctas, {
-          title: (c) => c.label || "׳›׳₪׳×׳•׳¨",
-          make: () => ({ label: "׳›׳₪׳×׳•׳¨", href: "#", style: "primary" }),
+          title: (c) => c.label || "כפתור",
+          make: () => ({ label: "כפתור", href: "#", style: "primary" }),
           render: (c) => el("div", {},
-            el("div", { class: "row" }, textField(c, "label", "׳˜׳§׳¡׳˜"), textField(c, "href", "׳§׳™׳©׳•׳¨")),
-            selectField(c, "style", "׳¡׳’׳ ׳•׳", [{ value: "primary", label: "׳‘׳•׳׳˜" }, { value: "ghost", label: "׳׳×׳׳¨" }])),
+            el("div", { class: "row" }, textField(c, "label", "טקסט"), textField(c, "href", "קישור")),
+            selectField(c, "style", "סגנון", [{ value: "primary", label: "בולט" }, { value: "ghost", label: "מתאר" }])),
         }));
     case "richtext":
       d.paragraphs = d.paragraphs || [];
       return el("div", {},
-        textField(d, "heading", "׳›׳•׳×׳¨׳×"),
-        el("p", { class: "muted", style: "font-size:.85rem" }, "׳₪׳¡׳§׳׳•׳×:"),
+        textField(d, "heading", "כותרת"),
+        el("p", { class: "muted", style: "font-size:.85rem" }, "פסקאות:"),
         repeater(d.paragraphs, {
-          title: (_p, i) => `׳₪׳¡׳§׳” ${i + 1}`,
+          title: (_p, i) => `פסקה ${i + 1}`,
           make: () => "",
           render: (_p, i) => {
             const ta = el("textarea", { rows: 3 });
@@ -422,74 +422,74 @@ function sectionEditor(s) {
     case "gallery":
       d.images = d.images || [];
       return el("div", {},
-        textField(d, "heading", "׳›׳•׳×׳¨׳×"),
-        textField(d, "intro", "׳˜׳§׳¡׳˜ ׳₪׳×׳™׳—׳”", { area: true, rows: 2 }),
-        el("p", { class: "muted", style: "font-size:.85rem" }, "׳×׳׳•׳ ׳•׳× ׳”׳’׳׳¨׳™׳”:"),
+        textField(d, "heading", "כותרת"),
+        textField(d, "intro", "טקסט פתיחה", { area: true, rows: 2 }),
+        el("p", { class: "muted", style: "font-size:.85rem" }, "תמונות הגלריה:"),
         repeater(d.images, {
-          title: (im, i) => im.alt || `׳×׳׳•׳ ׳” ${i + 1}`,
+          title: (im, i) => im.alt || `תמונה ${i + 1}`,
           make: () => ({ src: "", alt: "" }),
-          addLabel: "׳”׳•׳¡׳₪׳× ׳×׳׳•׳ ׳”",
+          addLabel: "הוספת תמונה",
           render: (im) => el("div", {},
-            imageField(im, "src", "׳×׳׳•׳ ׳”"),
-            textField(im, "alt", "׳×׳™׳׳•׳¨ (׳ ׳’׳™׳©׳•׳×)")),
+            imageField(im, "src", "תמונה"),
+            textField(im, "alt", "תיאור (נגישות)")),
         }));
     case "media":
       return el("div", {},
-        imageField(d, "poster", "׳×׳׳•׳ ׳× ׳₪׳×׳™׳—׳” / ׳ ׳₪׳™׳׳”"),
-        videoField(d, "video", "׳•׳™׳“׳׳• (׳׳ ׳—׳•׳‘׳”)"),
-        textField(d, "sectionLabel", "׳×׳™׳׳•׳¨ ׳”׳׳–׳•׳¨ (׳ ׳’׳™׳©׳•׳×)"),
-        textField(d, "videoLabel", "׳×׳™׳׳•׳¨ ׳”׳•׳™׳“׳׳• (׳ ׳’׳™׳©׳•׳×)"));
+        imageField(d, "poster", "תמונת פתיחה / נפילה"),
+        videoField(d, "video", "וידאו (לא חובה)"),
+        textField(d, "sectionLabel", "תיאור האזור (נגישות)"),
+        textField(d, "videoLabel", "תיאור הוידאו (נגישות)"));
     case "locations":
       return locationsEditor(d);
     case "social":
       d.links = d.links || [];
       return el("div", {},
-        textField(d, "heading", "׳›׳•׳×׳¨׳×"),
-        textField(d, "intro", "׳˜׳§׳¡׳˜", { area: true, rows: 2 }),
+        textField(d, "heading", "כותרת"),
+        textField(d, "intro", "טקסט", { area: true, rows: 2 }),
         repeater(d.links, {
           title: (l) => l.label || l.network,
           make: () => ({ network: "instagram", label: "", url: "https://" }),
           render: (l) => el("div", {},
-            selectField(l, "network", "׳¨׳©׳×", SOCIAL_OPTIONS),
-            el("div", { class: "row" }, textField(l, "label", "׳˜׳§׳¡׳˜"), textField(l, "url", "׳§׳™׳©׳•׳¨"))),
+            selectField(l, "network", "רשת", SOCIAL_OPTIONS),
+            el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "url", "קישור"))),
         }));
     default:
-      return el("div", { class: "muted" }, "׳׳–׳•׳¨ ׳׳¡׳•׳’ ׳–׳” ׳׳™׳ ׳• ׳ ׳×׳׳ ׳׳¢׳¨׳™׳›׳”.");
+      return el("div", { class: "muted" }, "אזור מסוג זה אינו נתמך לעריכה.");
   }
 }
 
 function menuEditor(d) {
   d.categories = d.categories || [];
   return el("div", {},
-    textField(d, "heading", "׳›׳•׳×׳¨׳× ׳”׳×׳₪׳¨׳™׳˜"),
-    textField(d, "intro", "׳˜׳§׳¡׳˜ ׳₪׳×׳™׳—׳”", { area: true, rows: 2 }),
-    textField(d, "currency", "׳׳˜׳‘׳¢", { hint: "ג‚×" }),
-    el("p", { class: "muted", style: "font-size:.85rem;margin-top:12px" }, "׳§׳˜׳’׳•׳¨׳™׳•׳×:"),
+    textField(d, "heading", "כותרת התפריט"),
+    textField(d, "intro", "טקסט פתיחה", { area: true, rows: 2 }),
+    textField(d, "currency", "מטבע", { hint: "₪" }),
+    el("p", { class: "muted", style: "font-size:.85rem;margin-top:12px" }, "קטגוריות:"),
     repeater(d.categories, {
-      title: (c) => c.title || "׳§׳˜׳’׳•׳¨׳™׳”",
-      make: () => ({ id: rid("cat"), title: "׳§׳˜׳’׳•׳¨׳™׳” ׳—׳“׳©׳”", groups: [{ items: [] }] }),
-      addLabel: "׳”׳•׳¡׳₪׳× ׳§׳˜׳’׳•׳¨׳™׳”",
+      title: (c) => c.title || "קטגוריה",
+      make: () => ({ id: rid("cat"), title: "קטגוריה חדשה", groups: [{ items: [] }] }),
+      addLabel: "הוספת קטגוריה",
       render: (c) => {
         c.groups = c.groups || [];
         return el("div", {},
-          el("div", { class: "row" }, textField(c, "title", "׳©׳ ׳”׳§׳˜׳’׳•׳¨׳™׳”"), textField(c, "navLabel", "׳©׳ ׳‘׳×׳₪׳¨׳™׳˜ (׳׳•׳₪׳¦׳™׳•׳ ׳׳™)")),
-          textField(c, "note", "׳”׳¢׳¨׳” (׳׳•׳₪׳¦׳™׳•׳ ׳׳™)"),
-          el("p", { class: "muted", style: "font-size:.82rem" }, "׳§׳‘׳•׳¦׳•׳× ׳׳ ׳•׳×:"),
+          el("div", { class: "row" }, textField(c, "title", "שם הקטגוריה"), textField(c, "navLabel", "שם בתפריט (אופציונלי)")),
+          textField(c, "note", "הערה (אופציונלי)"),
+          el("p", { class: "muted", style: "font-size:.82rem" }, "קבוצות מנות:"),
           repeater(c.groups, {
-            title: (g) => g.subhead || "׳§׳‘׳•׳¦׳”",
+            title: (g) => g.subhead || "קבוצה",
             make: () => ({ subhead: "", items: [] }),
-            addLabel: "׳”׳•׳¡׳₪׳× ׳§׳‘׳•׳¦׳”",
+            addLabel: "הוספת קבוצה",
             render: (g) => {
               g.items = g.items || [];
               return el("div", {},
-                textField(g, "subhead", "׳›׳•׳×׳¨׳× ׳§׳‘׳•׳¦׳” (׳׳•׳₪׳¦׳™׳•׳ ׳׳™)"),
+                textField(g, "subhead", "כותרת קבוצה (אופציונלי)"),
                 repeater(g.items, {
-                  title: (it) => it.name || "׳׳ ׳”",
-                  make: () => ({ name: "׳׳ ׳” ׳—׳“׳©׳”", price: "", desc: "", tags: [] }),
-                  addLabel: "׳”׳•׳¡׳₪׳× ׳׳ ׳”",
+                  title: (it) => it.name || "מנה",
+                  make: () => ({ name: "מנה חדשה", price: "", desc: "", tags: [] }),
+                  addLabel: "הוספת מנה",
                   render: (it) => el("div", {},
-                    el("div", { class: "row" }, textField(it, "name", "׳©׳ ׳”׳׳ ׳”"), textField(it, "price", "׳׳—׳™׳¨")),
-                    textField(it, "desc", "׳×׳™׳׳•׳¨", { area: true, rows: 2 }),
+                    el("div", { class: "row" }, textField(it, "name", "שם המנה"), textField(it, "price", "מחיר")),
+                    textField(it, "desc", "תיאור", { area: true, rows: 2 }),
                     tagPicker(it)),
                 }));
             },
@@ -501,22 +501,22 @@ function menuEditor(d) {
 function locationsEditor(d) {
   d.branches = d.branches || [];
   return el("div", {},
-    textField(d, "heading", "׳›׳•׳×׳¨׳×"),
-    textField(d, "intro", "׳˜׳§׳¡׳˜ ׳₪׳×׳™׳—׳”", { area: true, rows: 2 }),
-    textField(d, "footnote", "׳”׳¢׳¨׳× ׳©׳•׳׳™׳™׳", { area: true, rows: 2 }),
-    el("p", { class: "muted", style: "font-size:.85rem" }, "׳¡׳ ׳™׳₪׳™׳:"),
+    textField(d, "heading", "כותרת"),
+    textField(d, "intro", "טקסט פתיחה", { area: true, rows: 2 }),
+    textField(d, "footnote", "הערת שוליים", { area: true, rows: 2 }),
+    el("p", { class: "muted", style: "font-size:.85rem" }, "סניפים:"),
     repeater(d.branches, {
-      title: (b) => b.name || "׳¡׳ ׳™׳£",
-      make: () => ({ id: rid("branch"), name: "׳¡׳ ׳™׳£ ׳—׳“׳©", desc: "", waze: { lat: 0, lng: 0 }, hours: defaultHours() }),
-      addLabel: "׳”׳•׳¡׳₪׳× ׳¡׳ ׳™׳£",
+      title: (b) => b.name || "סניף",
+      make: () => ({ id: rid("branch"), name: "סניף חדש", desc: "", waze: { lat: 0, lng: 0 }, hours: defaultHours() }),
+      addLabel: "הוספת סניף",
       render: (b) => {
         b.waze = b.waze || { lat: 0, lng: 0 };
         b.hours = b.hours || defaultHours();
         return el("div", {},
-          textField(b, "name", "׳©׳ ׳”׳¡׳ ׳™׳£"),
-          textField(b, "desc", "׳×׳™׳׳•׳¨", { area: true, rows: 2 }),
-          el("div", { class: "row" }, numField(b.waze, "lat", "Waze ׳§׳• ׳¨׳•׳—׳‘"), numField(b.waze, "lng", "Waze ׳§׳• ׳׳•׳¨׳")),
-          el("p", { class: "muted", style: "font-size:.82rem" }, "׳©׳¢׳•׳× ׳₪׳×׳™׳—׳” (24 ׳©׳¢׳•׳×, ׳¨׳™׳§ = ׳¡׳’׳•׳¨):"),
+          textField(b, "name", "שם הסניף"),
+          textField(b, "desc", "תיאור", { area: true, rows: 2 }),
+          el("div", { class: "row" }, numField(b.waze, "lat", "Waze קו רוחב"), numField(b.waze, "lng", "Waze קו אורך")),
+          el("p", { class: "muted", style: "font-size:.82rem" }, "שעות פתיחה (24 שעות, ריק = סגור):"),
           hoursGrid(b.hours));
       },
     }));
@@ -537,14 +537,14 @@ function hoursGrid(hours) {
     open.addEventListener("input", sync);
     close.addEventListener("input", sync);
     grid.append(el("span", { class: "day" }, DAY_NAMES[day]), open, close,
-      el("span", { class: "muted", style: "font-size:.75rem" }, "׳₪׳×׳™׳—׳” / ׳¡׳’׳™׳¨׳”"));
+      el("span", { class: "muted", style: "font-size:.75rem" }, "פתיחה / סגירה"));
   }
   return grid;
 }
 
 function tagPicker(item) {
   item.tags = item.tags || [];
-  const wrap = el("div", { class: "field" }, el("label", {}, "׳¡׳™׳׳•׳ ׳™׳"));
+  const wrap = el("div", { class: "field" }, el("label", {}, "סימונים"));
   const pick = el("div", { class: "tag-pick" });
   for (const t of TAG_OPTIONS) {
     const cb = el("input", { type: "checkbox" });
@@ -566,19 +566,19 @@ function defaultSection(type) {
   const base = { id: rid(type), type, visible: true };
   switch (type) {
     case "hero":
-      return { ...base, data: { logo: "", background: "", headline: "׳›׳•׳×׳¨׳× ׳¨׳׳©׳™׳×", lead: "׳×׳×-׳›׳•׳×׳¨׳× ׳§׳¦׳¨׳” ׳¢׳ ׳”׳¢׳¡׳§.", ctas: [{ label: "׳׳×׳₪׳¨׳™׳˜", href: "#menu", style: "primary" }, { label: "׳׳™׳ ׳׳’׳™׳¢׳™׳", href: "#locations", style: "ghost" }] } };
+      return { ...base, data: { logo: "", background: "", headline: "כותרת ראשית", lead: "תת-כותרת קצרה על העסק.", ctas: [{ label: "לתפריט", href: "#menu", style: "primary" }, { label: "איך מגיעים", href: "#locations", style: "ghost" }] } };
     case "richtext":
-      return { ...base, data: { heading: "׳”׳¡׳™׳₪׳•׳¨ ׳©׳׳ ׳•", paragraphs: ["׳›׳×׳‘׳• ׳›׳׳ ׳׳× ׳”׳¡׳™׳₪׳•׳¨ ׳©׳ ׳”׳¢׳¡׳§."] } };
+      return { ...base, data: { heading: "הסיפור שלנו", paragraphs: ["כתבו כאן את הסיפור של העסק."] } };
     case "menu":
-      return { ...base, data: { heading: "׳”׳×׳₪׳¨׳™׳˜", intro: "", currency: "ג‚×", categories: [{ id: rid("cat"), title: "׳§׳˜׳’׳•׳¨׳™׳”", groups: [{ items: [{ name: "׳׳ ׳”", price: "0", desc: "", tags: [] }] }] }] } };
+      return { ...base, data: { heading: "התפריט", intro: "", currency: "₪", categories: [{ id: rid("cat"), title: "קטגוריה", groups: [{ items: [{ name: "מנה", price: "0", desc: "", tags: [] }] }] }] } };
     case "gallery":
-      return { ...base, data: { heading: "׳’׳׳¨׳™׳”", intro: "", images: [] } };
+      return { ...base, data: { heading: "גלריה", intro: "", images: [] } };
     case "media":
       return { ...base, data: { poster: "", video: "", sectionLabel: "", videoLabel: "" } };
     case "locations":
-      return { ...base, data: { heading: "׳׳™׳₪׳” ׳׳ ׳—׳ ׳•", intro: "", footnote: "", branches: [{ id: rid("branch"), name: "׳¡׳ ׳™׳£", desc: "", waze: { lat: 32.0853, lng: 34.7818 }, hours: defaultHours() }] } };
+      return { ...base, data: { heading: "איפה אנחנו", intro: "", footnote: "", branches: [{ id: rid("branch"), name: "סניף", desc: "", waze: { lat: 32.0853, lng: 34.7818 }, hours: defaultHours() }] } };
     case "social":
-      return { ...base, data: { heading: "׳¢׳§׳‘׳• ׳׳—׳¨׳™׳ ׳•", intro: "", links: [{ network: "instagram", label: "@username", url: "https://instagram.com/" }] } };
+      return { ...base, data: { heading: "עקבו אחרינו", intro: "", links: [{ network: "instagram", label: "@username", url: "https://instagram.com/" }] } };
     default:
       return { ...base, data: {} };
   }
@@ -592,7 +592,7 @@ function save() {
     state.dirty = false;
     setStatus(L.saved, "ok");
   } catch (err) {
-    setStatus("׳©׳׳™׳¨׳” ׳ ׳›׳©׳׳”: " + err.message, "err");
+    setStatus("שמירה נכשלה: " + err.message, "err");
   }
 }
 
@@ -621,20 +621,20 @@ async function downloadFile() {
     download((SITE_ID || "site") + "-index.html", html, "text/html");
     setStatus(L.published, "ok");
   } catch (err) {
-    setStatus("׳”׳₪׳¨׳¡׳•׳ ׳ ׳›׳©׳: " + err.message, "err");
+    setStatus("הפרסום נכשל: " + err.message, "err");
   } finally { state.busy = false; }
 }
 
 async function publishToGitHub() {
   if (state.busy) return;
   state.busy = true;
-  setStatus("׳׳₪׳¨׳¡׳ ׳׳׳™׳ ׳˜׳¨׳ ׳˜ג€¦", "");
+  setStatus("מפרסם לאינטרנט…", "");
   try {
     saveDraft(state.site);
     const html = await buildHtml();
 
     // Calls the Vercel serverless function (/api/publish) which holds the
-    // GitHub token securely in environment variables ג€” never in the browser.
+    // GitHub token securely in environment variables — never in the browser.
     const res = await fetch("/api/publish", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -645,9 +645,9 @@ async function publishToGitHub() {
       throw new Error(err.error || err.message || "HTTP " + res.status);
     }
 
-    setStatus("׳”׳׳×׳¨ ׳₪׳•׳¨׳¡׳ ג“ ג€” Vercel ׳׳¢׳“׳›׳ ׳×׳•׳ ׳©׳ ׳™׳•׳×", "ok");
+    setStatus("האתר פורסם ✓ — Vercel מעדכן תוך שניות", "ok");
   } catch (err) {
-    setStatus("׳₪׳¨׳¡׳•׳ ׳ ׳›׳©׳: " + err.message, "err");
+    setStatus("פרסום נכשל: " + err.message, "err");
   } finally { state.busy = false; }
 }
 
@@ -661,14 +661,14 @@ function importFromFile() {
       let site;
       if (/\.json$/i.test(f.name) || text.trim().startsWith("{")) site = JSON.parse(text);
       else site = extractEmbedded(text);
-      if (!site || !site.sections) throw new Error("׳׳ ׳ ׳׳¦׳ ׳×׳•׳›׳ ׳׳×׳¨ ׳‘׳§׳•׳‘׳¥");
+      if (!site || !site.sections) throw new Error("לא נמצא תוכן אתר בקובץ");
       state.site = site;
       saveDraft(site);
       state.dirty = false;
       renderEditor();
-      setStatus("׳”׳׳×׳¨ ׳ ׳˜׳¢׳ ׳׳¢׳¨׳™׳›׳” ג“", "ok");
+      setStatus("האתר נטען לעריכה ✓", "ok");
     } catch (err) {
-      setStatus("׳˜׳¢׳™׳ ׳” ׳ ׳›׳©׳׳”: " + err.message, "err");
+      setStatus("טעינה נכשלה: " + err.message, "err");
     }
   });
   document.body.appendChild(inp); inp.click(); inp.remove();
@@ -695,7 +695,7 @@ function fileToDataURL(blob) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
     r.onload = () => resolve(r.result);
-    r.onerror = () => reject(new Error("׳§׳¨׳™׳׳× ׳”׳§׳•׳‘׳¥ ׳ ׳›׳©׳׳”"));
+    r.onerror = () => reject(new Error("קריאת הקובץ נכשלה"));
     r.readAsDataURL(blob);
   });
 }
@@ -706,7 +706,7 @@ async function uploadImage(file) {
     const r = await downscale(file, 1600);
     blob = r.blob; type = r.type;
   }
-  return fileToDataURL(blob); // inline data-URI ג€” travels with the export, no hosting
+  return fileToDataURL(blob); // inline data-URI — travels with the export, no hosting
 }
 
 function downscale(file, maxDim) {
@@ -750,7 +750,7 @@ async function refreshPreview() {
     const base = new URL(templateUrl());
     $previewFrame.srcdoc = html.replace("<head>", `<head><base href="${base.origin}${base.pathname.replace(/[^/]+$/, "")}">`);
   } catch (err) {
-    $previewFrame.srcdoc = `<!doctype html><meta charset=utf-8><body style="font-family:sans-serif;padding:24px;color:#444">׳˜׳¢׳™׳ ׳× ׳×׳¦׳•׳’׳” ׳׳§׳“׳™׳׳” ׳ ׳›׳©׳׳”: ${err.message}</body>`;
+    $previewFrame.srcdoc = `<!doctype html><meta charset=utf-8><body style="font-family:sans-serif;padding:24px;color:#444">טעינת תצוגה מקדימה נכשלה: ${err.message}</body>`;
   }
 }
 
