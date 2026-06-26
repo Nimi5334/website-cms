@@ -137,12 +137,12 @@ function renderEditor() {
     panelFooter(site)
   );
 
-  const saveBtn = el(“button”, { class: “btn”, onclick: save }, L.save);
-  const ghBtn   = el(“button”, { class: “btn btn-primary”, onclick: publishToGitHub }, “פרסם לאינטרנט”);
-  const dlBtn   = el(“button”, { class: “btn”, onclick: downloadFile }, L.publish);
-  const note    = el(“span”, { class: “muted”, style: “font-size:.82rem” },
-    “פרסם לאינטרנט ← Vercel מעדכן את האתר תוך שניות.”);
-  const savebar = el(“div”, { class: “savebar” }, ghBtn, dlBtn, saveBtn, note);
+  const saveBtn = el("button", { class: "btn", onclick: save }, L.save);
+  const ghBtn   = el("button", { class: "btn btn-primary", onclick: publishToGitHub }, "פרסם לאינטרנט");
+  const dlBtn   = el("button", { class: "btn", onclick: downloadFile }, L.publish);
+  const note    = el("span", { class: "muted", style: "font-size:.82rem" },
+    "פרסם לאינטרנט ← Vercel מעדכן את האתר תוך שניות.");
+  const savebar = el("div", { class: "savebar" }, ghBtn, dlBtn, saveBtn, note);
 
   const left = el("div", {}, editor, savebar);
   const preview = el("div", { class: "preview-pane hide" }, el("iframe", { title: "preview" }));
