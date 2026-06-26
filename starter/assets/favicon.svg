@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Food truck">
+  <rect width="32" height="32" rx="7" fill="#33585B"/>
+  <g transform="translate(4 9)">
+    <rect x="1" y="6" width="15" height="9" rx="2" fill="#F6F4EC"/>
+    <rect x="16" y="8" width="7" height="7" rx="2" fill="#BF6E3A"/>
+    <rect x="18" y="9.5" width="3.5" height="3" rx="1" fill="#F6F4EC"/>
+    <path d="M1 6 H16 l-1.4 2 H2.4 Z" fill="#BF6E3A"/>
+    <circle cx="6" cy="16" r="2.4" fill="#26312B"/>
+    <circle cx="18" cy="16" r="2.4" fill="#26312B"/>
+  </g>
+</svg>

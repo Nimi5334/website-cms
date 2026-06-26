@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Gallery placeholder 3" preserveAspectRatio="xMidYMid slice">
+  <rect width="800" height="600" fill="#E7E1D0"/>
+  <circle cx="400" cy="300" r="120" fill="#7C8A62" opacity="0.20"/>
+  <g transform="translate(400 300)" fill="none" stroke="#55633C" stroke-width="7" opacity="0.7">
+    <rect x="-70" y="-52" width="140" height="104" rx="12"/>
+    <circle cx="0" cy="0" r="28"/>
+  </g>
+  <text x="400" y="470" text-anchor="middle" font-family="Georgia, serif" font-size="34" fill="#55633C" opacity="0.7">תמונה 3</text>
+</svg>

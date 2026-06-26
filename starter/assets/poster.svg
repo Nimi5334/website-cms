@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-label="Photo placeholder" preserveAspectRatio="xMidYMid slice">
+  <rect width="1920" height="1080" fill="#EEEBDD"/>
+  <rect width="1920" height="1080" fill="#79A5A7" opacity="0.10"/>
+  <g transform="translate(960 540)" fill="none" stroke="#79A5A7" stroke-width="10" opacity="0.85">
+    <rect x="-150" y="-110" width="300" height="220" rx="20"/>
+    <circle cx="0" cy="0" r="58"/>
+    <circle cx="0" cy="0" r="24" fill="#79A5A7" stroke="none" opacity="0.5"/>
+    <rect x="-150" y="-150" width="92" height="42" rx="12" fill="#79A5A7" stroke="none" opacity="0.5"/>
+  </g>
+  <text x="960" y="760" text-anchor="middle" font-family="Georgia, serif" font-size="46" fill="#54625B" opacity="0.7">תמונה / וידאו של העסק</text>
+</svg>

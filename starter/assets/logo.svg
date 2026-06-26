@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 220" width="440" height="220" role="img" aria-label="Food truck logo placeholder">
+  <rect width="440" height="220" fill="none"/>
+  <g transform="translate(70 44)">
+    <!-- truck body -->
+    <rect x="6" y="40" width="180" height="74" rx="12" fill="#33585B"/>
+    <rect x="186" y="60" width="76" height="54" rx="10" fill="#49777A"/>
+    <rect x="196" y="70" width="40" height="28" rx="5" fill="#F6F4EC"/>
+    <!-- awning -->
+    <path d="M0 40 H196 l-12 18 H12 Z" fill="#BF6E3A"/>
+    <g fill="#a85a2c">
+      <rect x="18" y="40" width="22" height="18"/>
+      <rect x="62" y="40" width="22" height="18"/>
+      <rect x="106" y="40" width="22" height="18"/>
+      <rect x="150" y="40" width="22" height="18"/>
+    </g>
+    <!-- wheels -->
+    <circle cx="60" cy="120" r="20" fill="#26312B"/>
+    <circle cx="60" cy="120" r="9" fill="#F6F4EC"/>
+    <circle cx="214" cy="120" r="20" fill="#26312B"/>
+    <circle cx="214" cy="120" r="9" fill="#F6F4EC"/>
+    <!-- fork & knife emblem -->
+    <g stroke="#F6F4EC" stroke-width="4" stroke-linecap="round" fill="none">
+      <path d="M84 60 v34 M92 60 v34 M100 60 v34"/>
+      <path d="M96 78 v16"/>
+    </g>
+  </g>
+  <text x="220" y="186" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-weight="700" letter-spacing="3" fill="#26312B">FOOD&#160;TRUCK</text>
+</svg>
