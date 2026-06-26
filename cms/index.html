@@ -446,16 +446,24 @@ input[type=number]::-webkit-outer-spin-button { opacity: 1; }
 <body>
 <div id="app"><div style="padding:40px;color:#999;text-align:center;font-family:system-ui">׳˜׳•׳¢׳...</div></div>
 <script type="module">
+  const showError = (msg) => {
+    console.error(msg);
+    document.getElementById('app').innerHTML = '<div style="padding:40px;color:red;font-family:monospace;white-space:pre-wrap;line-height:1.8">' + msg.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+  };
   window.addEventListener('error', (e) => {
-    console.error('Global error:', e);
-    document.getElementById('app').innerHTML = '<div style="padding:40px;color:red;font-family:monospace;white-space:pre-wrap">Error: ' + e.message + '</div>';
+    showError('Error: ' + e.message + '\n\n' + (e.filename ? e.filename + ':' + e.lineno : ''));
   });
   window.addEventListener('unhandledrejection', (e) => {
-    console.error('Unhandled rejection:', e);
-    document.getElementById('app').innerHTML = '<div style="padding:40px;color:red;font-family:monospace;white-space:pre-wrap">Promise Error: ' + e.reason + '</div>';
+    showError('Unhandled Promise: ' + (e.reason?.message || e.reason || String(e.reason)));
   });
-  console.log('CMS loading...');
+  try {
+    console.log('Importing app.js...');
+    import('./app.js').catch(err => {
+      showError('Failed to import app.js:\n' + err.message + '\n\nStack:\n' + err.stack);
+    });
+  } catch (err) {
+    showError('Failed to load module:\n' + err.message);
+  }
 </script>
-<script type="module" src="app.js"></script>
 </body>
 </html>
