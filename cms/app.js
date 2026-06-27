@@ -129,34 +129,34 @@ const MOB_GROUPS = [
     key: "general",
     label: L.general,
     items: [
-      { label: "שם העסק ולוגו", panel: "general" },
-      { label: "כותרת הדף (לשונית / גוגל)", panel: "general" },
-      { label: "תיאור הדף, Favicon וצבע דפדפן", panel: "general" },
+      { label: "שם העסק ולוגו",              panel: "general", anchorId: "anc-brand"  },
+      { label: "כותרת הדף (לשונית / גוגל)",  panel: "general", anchorId: "anc-seo"    },
+      { label: "Favicon וצבע דפדפן",          panel: "general", anchorId: "anc-meta"   },
     ],
   },
   {
     key: "theme",
     label: L.theme,
     items: [
-      { label: "צבעי האתר", panel: "theme" },
-      { label: "גופנים", panel: "theme" },
-      { label: "עיגול פינות", panel: "theme" },
+      { label: "צבעי האתר",     panel: "theme", anchorId: "anc-colors" },
+      { label: "גופנים",        panel: "theme", anchorId: "anc-fonts"  },
+      { label: "עיגול פינות",   panel: "theme", anchorId: "anc-radius" },
     ],
   },
   {
     key: "nav",
     label: L.navigation,
     items: [
-      { label: "קישורי ניווט", panel: "nav" },
-      { label: "כפתור ראשי (CTA)", panel: "nav" },
+      { label: "קישורי ניווט",      panel: "nav", anchorId: "anc-navlinks" },
+      { label: "כפתור ראשי (CTA)", panel: "nav", anchorId: "anc-cta"      },
     ],
   },
   {
     key: "footer",
     label: L.footer,
     items: [
-      { label: "לוגו וזכויות יוצרים", panel: "footer" },
-      { label: "קישורי תחתית", panel: "footer" },
+      { label: "לוגו וזכויות יוצרים", panel: "footer", anchorId: "anc-footer-brand" },
+      { label: "קישורי תחתית",        panel: "footer", anchorId: "anc-footer-links" },
     ],
   },
 ];
@@ -167,16 +167,15 @@ let $mobSheet   = null;
 let $mobList    = null;
 let mobOpen     = false;
 
-function mobNavigate(panel, sectionId) {
+function mobNavigate(panel, anchorId) {
   state.activePanel = panel;
   buildSidebarNav();
   renderActivePanel();
   closeMobMenu();
-  /* Wait for the sheet close animation (300ms) so the user actually sees
-     the result once the sheet is out of the way. */
+  /* Wait for the sheet close animation (300ms) so the scroll is visible. */
   setTimeout(() => {
-    if (sectionId != null) {
-      const target = document.getElementById("sec-" + sectionId);
+    if (anchorId) {
+      const target = document.getElementById(anchorId);
       if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -193,7 +192,7 @@ function rebuildMobList(query) {
   const sectionItems = (state.site?.sections || []).map((s, i) => ({
     label: SECTION_LABELS[s.type] || s.type,
     panel: "sections",
-    sectionId: s.id || ("idx-" + i),
+    anchorId: "sec-" + (s.id || ("idx-" + i)),
     hidden: s.visible === false,
   }));
 
@@ -217,12 +216,11 @@ function rebuildMobList(query) {
     );
 
     for (const item of matched) {
-      const isCur = state.activePanel === item.panel &&
-        (item.panel !== "sections" || item.sectionId == null);
+      const isCur = state.activePanel === item.panel && !item.anchorId;
       const btn = el("button", {
         class: "mob-item" + (isCur ? " is-cur" : ""),
         type: "button",
-        onclick: () => mobNavigate(item.panel, item.sectionId ?? null),
+        onclick: () => mobNavigate(item.panel, item.anchorId ?? null),
       });
       if (item.hidden) btn.append(el("span", { class: "mob-hidden-dot", title: "מוסתר באתר" }));
       btn.append(el("span", { class: "mob-item-txt" }, item.label));
@@ -524,13 +522,16 @@ function panelGeneral(site) {
   site.brand = site.brand || {};
   site.meta = site.meta || {};
   return panel(L.general,
-    textField(site.brand, "name", L.brand_name),
-    imageField(site.brand, "logo", L.logo),
-    textField(site.meta, "title", L.site_title),
-    textField(site.meta, "description", L.site_desc, { area: true, rows: 2 }),
-    el("div", { class: "row" },
-      imageField(site.meta, "favicon", L.favicon, "קובץ קטן, רצוי SVG או PNG"),
-      colorField(site.meta, "themeColor", L.theme_color))
+    el("div", { id: "anc-brand" },
+      textField(site.brand, "name", L.brand_name),
+      imageField(site.brand, "logo", L.logo)),
+    el("div", { id: "anc-seo" },
+      textField(site.meta, "title", L.site_title),
+      textField(site.meta, "description", L.site_desc, { area: true, rows: 2 })),
+    el("div", { id: "anc-meta" },
+      el("div", { class: "row" },
+        imageField(site.meta, "favicon", L.favicon, "קובץ קטן, רצוי SVG או PNG"),
+        colorField(site.meta, "themeColor", L.theme_color)))
   );
 }
 
@@ -551,8 +552,10 @@ function panelTheme(site) {
   const syncFonts = () => { site.meta.fontsHref = buildFontsHref(site.theme.fonts); markDirty(); };
   headSel.querySelector("select").addEventListener("change", syncFonts);
   bodySel.querySelector("select").addEventListener("change", syncFonts);
-  return panel(L.theme, swatches, el("div", { class: "row" }, headSel, bodySel),
-    textField(site.theme, "radius", L.radius, { hint: "לדוגמה 14px" }));
+  return panel(L.theme,
+    el("div", { id: "anc-colors" }, swatches),
+    el("div", { id: "anc-fonts" }, el("div", { class: "row" }, headSel, bodySel)),
+    el("div", { id: "anc-radius" }, textField(site.theme, "radius", L.radius, { hint: "לדוגמה 14px" })));
 }
 
 function panelNav(site) {
@@ -564,9 +567,11 @@ function panelNav(site) {
     render: (l) => el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "קישור")),
   });
   site.nav.cta = site.nav.cta || { label: "", href: "#" };
-  return panel(L.navigation, links,
-    el("p", { class: "muted", style: "margin-top:14px;font-size:.85rem" }, "כפתור בולט (לא חובה):"),
-    el("div", { class: "row" }, textField(site.nav.cta, "label", "טקסט הכפתור"), textField(site.nav.cta, "href", "קישור")));
+  return panel(L.navigation,
+    el("div", { id: "anc-navlinks" }, links),
+    el("div", { id: "anc-cta" },
+      el("p", { class: "muted", style: "margin-top:14px;font-size:.85rem" }, "כפתור בולט (לא חובה):"),
+      el("div", { class: "row" }, textField(site.nav.cta, "label", "טקסט הכפתור"), textField(site.nav.cta, "href", "קישור"))));
 }
 
 function panelFooter(site) {
@@ -580,10 +585,13 @@ function panelFooter(site) {
       el("label", { class: "toggle" }, checkbox(l, "external"), "נפתח בלשונית חדשה")),
   });
   return panel(L.footer,
-    imageField(site.footer, "logo", "לוגו בתחתית"),
-    textField(site.footer, "copyright", "זכויות יוצרים"),
-    textField(site.footer, "regions", "טקסט נוסף"),
-    el("p", { class: "muted", style: "font-size:.85rem" }, "קישורים בתחתית:"), links);
+    el("div", { id: "anc-footer-brand" },
+      imageField(site.footer, "logo", "לוגו בתחתית"),
+      textField(site.footer, "copyright", "זכויות יוצרים"),
+      textField(site.footer, "regions", "טקסט נוסף")),
+    el("div", { id: "anc-footer-links" },
+      el("p", { class: "muted", style: "font-size:.85rem" }, "קישורים בתחתית:"),
+      links));
 }
 
 /* ---------------- sections ---------------- */
