@@ -171,13 +171,17 @@ function mobNavigate(panel, sectionId) {
   state.activePanel = panel;
   buildSidebarNav();
   renderActivePanel();
-  if (sectionId != null) {
-    requestAnimationFrame(() => {
+  closeMobMenu();
+  /* Wait for the sheet close animation (300ms) so the user actually sees
+     the result once the sheet is out of the way. */
+  setTimeout(() => {
+    if (sectionId != null) {
       const target = document.getElementById("sec-" + sectionId);
       if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }
-  closeMobMenu();
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, 320);
 }
 
 function rebuildMobList(query) {
@@ -190,7 +194,6 @@ function rebuildMobList(query) {
     label: SECTION_LABELS[s.type] || s.type,
     panel: "sections",
     sectionId: s.id || ("idx-" + i),
-    badge: SECTION_LABELS[s.type] || s.type,
     hidden: s.visible === false,
   }));
 
