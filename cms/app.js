@@ -123,6 +123,189 @@ const NAV_PANELS = [
   { key: "footer",   label: L.footer },
 ];
 
+/* ---- Mobile menu groups (static items per panel) ---- */
+const MOB_GROUPS = [
+  {
+    key: "general",
+    label: L.general,
+    items: [
+      { label: "שם העסק ולוגו", panel: "general" },
+      { label: "כותרת הדף (לשונית / גוגל)", panel: "general" },
+      { label: "תיאור הדף, Favicon וצבע דפדפן", panel: "general" },
+    ],
+  },
+  {
+    key: "theme",
+    label: L.theme,
+    items: [
+      { label: "צבעי האתר", panel: "theme" },
+      { label: "גופנים", panel: "theme" },
+      { label: "עיגול פינות", panel: "theme" },
+    ],
+  },
+  {
+    key: "nav",
+    label: L.navigation,
+    items: [
+      { label: "קישורי ניווט", panel: "nav" },
+      { label: "כפתור ראשי (CTA)", panel: "nav" },
+    ],
+  },
+  {
+    key: "footer",
+    label: L.footer,
+    items: [
+      { label: "לוגו וזכויות יוצרים", panel: "footer" },
+      { label: "קישורי תחתית", panel: "footer" },
+    ],
+  },
+];
+
+/* ---------------- mobile filter menu ---------------- */
+let $mobOverlay = null;
+let $mobSheet   = null;
+let $mobList    = null;
+let mobOpen     = false;
+
+function mobNavigate(panel, sectionId) {
+  state.activePanel = panel;
+  buildSidebarNav();
+  renderActivePanel();
+  if (sectionId != null) {
+    requestAnimationFrame(() => {
+      const target = document.getElementById("sec-" + sectionId);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+  closeMobMenu();
+}
+
+function rebuildMobList(query) {
+  if (!$mobList) return;
+  $mobList.replaceChildren();
+  const q = query.trim().toLowerCase();
+
+  /* Dynamic "אזורי תוכן" group from current site sections */
+  const sectionItems = (state.site?.sections || []).map((s, i) => ({
+    label: SECTION_LABELS[s.type] || s.type,
+    panel: "sections",
+    sectionId: s.id || ("idx-" + i),
+    badge: SECTION_LABELS[s.type] || s.type,
+    hidden: s.visible === false,
+  }));
+
+  const allGroups = [
+    ...MOB_GROUPS,
+    { key: "sections", label: L.sections, items: sectionItems },
+  ];
+
+  let anyVisible = false;
+
+  for (const group of allGroups) {
+    const matched = group.items.filter(it => {
+      if (!q) return true;
+      return it.label.includes(q) || group.label.includes(q);
+    });
+    if (!matched.length) continue;
+    anyVisible = true;
+
+    $mobList.append(
+      el("div", { class: "mob-group-hd", role: "group", "aria-label": group.label }, group.label)
+    );
+
+    for (const item of matched) {
+      const isCur = state.activePanel === item.panel &&
+        (item.panel !== "sections" || item.sectionId == null);
+      const btn = el("button", {
+        class: "mob-item" + (isCur ? " is-cur" : ""),
+        type: "button",
+        onclick: () => mobNavigate(item.panel, item.sectionId ?? null),
+      });
+      if (item.hidden) btn.append(el("span", { class: "mob-hidden-dot", title: "מוסתר באתר" }));
+      btn.append(el("span", { class: "mob-item-txt" }, item.label));
+      if (item.badge) btn.append(el("span", { class: "mob-type-tag" }, item.badge));
+      $mobList.append(btn);
+    }
+  }
+
+  if (!anyVisible) {
+    $mobList.append(el("div", { class: "mob-no-results" }, "לא נמצאו תוצאות"));
+  }
+}
+
+function openMobMenu() {
+  if (!$mobSheet) return;
+  mobOpen = true;
+  const searchEl = $mobSheet.querySelector(".mob-search");
+  if (searchEl) searchEl.value = "";
+  rebuildMobList("");
+  $mobOverlay.classList.add("open");
+  $mobSheet.classList.add("open");
+  $mobSheet.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => $mobSheet.querySelector(".mob-search")?.focus());
+}
+
+function closeMobMenu() {
+  if (!$mobSheet) return;
+  mobOpen = false;
+  $mobOverlay.classList.remove("open");
+  $mobSheet.classList.remove("open");
+  $mobSheet.setAttribute("aria-hidden", "true");
+}
+
+function destroyMobMenu() {
+  document.querySelectorAll(".mob-fab, .mob-overlay, .mob-sheet").forEach(n => n.remove());
+  $mobOverlay = null; $mobSheet = null; $mobList = null; mobOpen = false;
+}
+
+function buildMobMenu() {
+  destroyMobMenu();
+
+  $mobOverlay = el("div", { class: "mob-overlay", onclick: closeMobMenu, "aria-hidden": "true" });
+
+  const handle  = el("div", { class: "mob-handle" });
+  const search  = el("input", {
+    class: "mob-search",
+    type: "search",
+    placeholder: "חיפוש אזור עריכה…",
+    "aria-label": "חיפוש אזור עריכה",
+    oninput: (e) => rebuildMobList(e.target.value),
+  });
+  const closeBtn = el("button", {
+    class: "mob-close",
+    type: "button",
+    "aria-label": "סגור תפריט",
+    onclick: closeMobMenu,
+  }, "✕");
+  const head = el("div", { class: "mob-head" }, search, closeBtn);
+
+  $mobList = el("div", { class: "mob-list", role: "menu" });
+
+  $mobSheet = el("div", {
+    class: "mob-sheet",
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-label": "ניווט מהיר לעריכה",
+    "aria-hidden": "true",
+  }, handle, head, $mobList);
+
+  /* Close on Escape */
+  $mobSheet.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.stopPropagation(); closeMobMenu(); }
+  });
+
+  const fab = el("button", {
+    class: "mob-fab",
+    type: "button",
+    "aria-label": "פתח תפריט ניווט לעריכה",
+    title: "ניווט מהיר",
+    onclick: openMobMenu,
+    html: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/></svg>',
+  });
+
+  document.body.append($mobOverlay, $mobSheet, fab);
+}
+
 /* ---------------- editor shell ---------------- */
 let $previewFrame = null;
 let $sidebar = null;
@@ -162,6 +345,7 @@ function renderEditor() {
   $previewFrame = preview.querySelector("iframe");
 
   $app.replaceChildren(topbar, el("div", { class: "shell", id: "shell" }, $sidebar, mainArea, preview));
+  buildMobMenu();
 }
 
 function buildSidebarNav() {
@@ -415,7 +599,7 @@ function panelSections(site) {
           el("button", { class: "btn btn-sm", type: "button", disabled: i === site.sections.length - 1, onclick: () => { move(site.sections, i, 1); draw(); markDirty(); } }, L.down),
           el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { if (confirm("למחוק את האזור הזה?")) { site.sections.splice(i, 1); draw(); markDirty(); } } }, "✕"))
       );
-      container.append(el("div", { class: "repeater-item" }, head, sectionEditor(s)));
+      container.append(el("div", { class: "repeater-item", id: "sec-" + (s.id || "idx-" + i) }, head, sectionEditor(s)));
     });
     // add-section control
     const sel = el("select", {});
