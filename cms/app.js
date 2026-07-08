@@ -123,190 +123,6 @@ const NAV_PANELS = [
   { key: "footer",   label: L.footer },
 ];
 
-/* ---- Mobile menu groups (static items per panel) ---- */
-const MOB_GROUPS = [
-  {
-    key: "general",
-    label: L.general,
-    items: [
-      { label: "שם העסק ולוגו",              panel: "general", anchorId: "anc-brand"  },
-      { label: "כותרת הדף (לשונית / גוגל)",  panel: "general", anchorId: "anc-seo"    },
-      { label: "Favicon וצבע דפדפן",          panel: "general", anchorId: "anc-meta"   },
-    ],
-  },
-  {
-    key: "theme",
-    label: L.theme,
-    items: [
-      { label: "צבעי האתר",     panel: "theme", anchorId: "anc-colors" },
-      { label: "גופנים",        panel: "theme", anchorId: "anc-fonts"  },
-      { label: "עיגול פינות",   panel: "theme", anchorId: "anc-radius" },
-    ],
-  },
-  {
-    key: "nav",
-    label: L.navigation,
-    items: [
-      { label: "קישורי ניווט",      panel: "nav", anchorId: "anc-navlinks" },
-      { label: "כפתור ראשי (CTA)", panel: "nav", anchorId: "anc-cta"      },
-    ],
-  },
-  {
-    key: "footer",
-    label: L.footer,
-    items: [
-      { label: "לוגו וזכויות יוצרים", panel: "footer", anchorId: "anc-footer-brand" },
-      { label: "קישורי תחתית",        panel: "footer", anchorId: "anc-footer-links" },
-    ],
-  },
-];
-
-/* ---------------- mobile filter menu ---------------- */
-let $mobOverlay = null;
-let $mobSheet   = null;
-let $mobList    = null;
-let mobOpen     = false;
-
-function mobNavigate(panel, anchorId) {
-  state.activePanel = panel;
-  buildSidebarNav();
-  renderActivePanel();
-  closeMobMenu();
-  /* Wait for the sheet close animation (300ms) so the scroll is visible. */
-  setTimeout(() => {
-    if (anchorId) {
-      const target = document.getElementById(anchorId);
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
-  }, 320);
-}
-
-function rebuildMobList(query) {
-  if (!$mobList) return;
-  $mobList.replaceChildren();
-  const q = query.trim().toLowerCase();
-
-  /* Dynamic "אזורי תוכן" group from current site sections */
-  const sectionItems = (state.site?.sections || []).map((s, i) => ({
-    label: SECTION_LABELS[s.type] || s.type,
-    panel: "sections",
-    anchorId: "sec-" + (s.id || ("idx-" + i)),
-    hidden: s.visible === false,
-  }));
-
-  const allGroups = [
-    ...MOB_GROUPS,
-    { key: "sections", label: L.sections, items: sectionItems },
-  ];
-
-  let anyVisible = false;
-
-  for (const group of allGroups) {
-    const matched = group.items.filter(it => {
-      if (!q) return true;
-      return it.label.includes(q) || group.label.includes(q);
-    });
-    if (!matched.length) continue;
-    anyVisible = true;
-
-    $mobList.append(
-      el("div", { class: "mob-group-hd", role: "group", "aria-label": group.label }, group.label)
-    );
-
-    for (const item of matched) {
-      const isCur = state.activePanel === item.panel && !item.anchorId;
-      const btn = el("button", {
-        class: "mob-item" + (isCur ? " is-cur" : ""),
-        type: "button",
-        onclick: () => mobNavigate(item.panel, item.anchorId ?? null),
-      });
-      if (item.hidden) btn.append(el("span", { class: "mob-hidden-dot", title: "מוסתר באתר" }));
-      btn.append(el("span", { class: "mob-item-txt" }, item.label));
-      if (item.badge) btn.append(el("span", { class: "mob-type-tag" }, item.badge));
-      $mobList.append(btn);
-    }
-  }
-
-  if (!anyVisible) {
-    $mobList.append(el("div", { class: "mob-no-results" }, "לא נמצאו תוצאות"));
-  }
-}
-
-function openMobMenu() {
-  if (!$mobSheet) return;
-  mobOpen = true;
-  const searchEl = $mobSheet.querySelector(".mob-search");
-  if (searchEl) searchEl.value = "";
-  rebuildMobList("");
-  $mobOverlay.classList.add("open");
-  $mobSheet.classList.add("open");
-  $mobSheet.setAttribute("aria-hidden", "false");
-  requestAnimationFrame(() => $mobSheet.querySelector(".mob-search")?.focus());
-}
-
-function closeMobMenu() {
-  if (!$mobSheet) return;
-  mobOpen = false;
-  $mobOverlay.classList.remove("open");
-  $mobSheet.classList.remove("open");
-  $mobSheet.setAttribute("aria-hidden", "true");
-}
-
-function destroyMobMenu() {
-  document.querySelectorAll(".mob-fab, .mob-overlay, .mob-sheet").forEach(n => n.remove());
-  $mobOverlay = null; $mobSheet = null; $mobList = null; mobOpen = false;
-}
-
-function buildMobMenu() {
-  destroyMobMenu();
-
-  $mobOverlay = el("div", { class: "mob-overlay", onclick: closeMobMenu, "aria-hidden": "true" });
-
-  const handle  = el("div", { class: "mob-handle" });
-  const search  = el("input", {
-    class: "mob-search",
-    type: "search",
-    placeholder: "חיפוש אזור עריכה…",
-    "aria-label": "חיפוש אזור עריכה",
-    oninput: (e) => rebuildMobList(e.target.value),
-  });
-  const closeBtn = el("button", {
-    class: "mob-close",
-    type: "button",
-    "aria-label": "סגור תפריט",
-    onclick: closeMobMenu,
-  }, "✕");
-  const head = el("div", { class: "mob-head" }, search, closeBtn);
-
-  $mobList = el("div", { class: "mob-list", role: "menu" });
-
-  $mobSheet = el("div", {
-    class: "mob-sheet",
-    role: "dialog",
-    "aria-modal": "true",
-    "aria-label": "ניווט מהיר לעריכה",
-    "aria-hidden": "true",
-  }, handle, head, $mobList);
-
-  /* Close on Escape */
-  $mobSheet.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { e.stopPropagation(); closeMobMenu(); }
-  });
-
-  const fab = el("button", {
-    class: "mob-fab",
-    type: "button",
-    "aria-label": "פתח תפריט ניווט לעריכה",
-    title: "ניווט מהיר",
-    onclick: openMobMenu,
-    html: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/></svg>',
-  });
-
-  document.body.append($mobOverlay, $mobSheet, fab);
-}
-
 /* ---------------- editor shell ---------------- */
 let $previewFrame = null;
 let $sidebar = null;
@@ -346,7 +162,6 @@ function renderEditor() {
   $previewFrame = preview.querySelector("iframe");
 
   $app.replaceChildren(topbar, el("div", { class: "shell", id: "shell" }, $sidebar, mainArea, preview));
-  buildMobMenu();
 }
 
 function buildSidebarNav() {
@@ -522,16 +337,13 @@ function panelGeneral(site) {
   site.brand = site.brand || {};
   site.meta = site.meta || {};
   return panel(L.general,
-    el("div", { id: "anc-brand" },
-      textField(site.brand, "name", L.brand_name),
-      imageField(site.brand, "logo", L.logo)),
-    el("div", { id: "anc-seo" },
-      textField(site.meta, "title", L.site_title),
-      textField(site.meta, "description", L.site_desc, { area: true, rows: 2 })),
-    el("div", { id: "anc-meta" },
-      el("div", { class: "row" },
-        imageField(site.meta, "favicon", L.favicon, "קובץ קטן, רצוי SVG או PNG"),
-        colorField(site.meta, "themeColor", L.theme_color)))
+    textField(site.brand, "name", L.brand_name),
+    imageField(site.brand, "logo", L.logo),
+    textField(site.meta, "title", L.site_title),
+    textField(site.meta, "description", L.site_desc, { area: true, rows: 2 }),
+    el("div", { class: "row" },
+      imageField(site.meta, "favicon", L.favicon, "קובץ קטן, רצוי SVG או PNG"),
+      colorField(site.meta, "themeColor", L.theme_color))
   );
 }
 
@@ -552,10 +364,8 @@ function panelTheme(site) {
   const syncFonts = () => { site.meta.fontsHref = buildFontsHref(site.theme.fonts); markDirty(); };
   headSel.querySelector("select").addEventListener("change", syncFonts);
   bodySel.querySelector("select").addEventListener("change", syncFonts);
-  return panel(L.theme,
-    el("div", { id: "anc-colors" }, swatches),
-    el("div", { id: "anc-fonts" }, el("div", { class: "row" }, headSel, bodySel)),
-    el("div", { id: "anc-radius" }, textField(site.theme, "radius", L.radius, { hint: "לדוגמה 14px" })));
+  return panel(L.theme, swatches, el("div", { class: "row" }, headSel, bodySel),
+    textField(site.theme, "radius", L.radius, { hint: "לדוגמה 14px" }));
 }
 
 function panelNav(site) {
@@ -567,11 +377,9 @@ function panelNav(site) {
     render: (l) => el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "קישור")),
   });
   site.nav.cta = site.nav.cta || { label: "", href: "#" };
-  return panel(L.navigation,
-    el("div", { id: "anc-navlinks" }, links),
-    el("div", { id: "anc-cta" },
-      el("p", { class: "muted", style: "margin-top:14px;font-size:.85rem" }, "כפתור בולט (לא חובה):"),
-      el("div", { class: "row" }, textField(site.nav.cta, "label", "טקסט הכפתור"), textField(site.nav.cta, "href", "קישור"))));
+  return panel(L.navigation, links,
+    el("p", { class: "muted", style: "margin-top:14px;font-size:.85rem" }, "כפתור בולט (לא חובה):"),
+    el("div", { class: "row" }, textField(site.nav.cta, "label", "טקסט הכפתור"), textField(site.nav.cta, "href", "קישור")));
 }
 
 function panelFooter(site) {
@@ -585,13 +393,10 @@ function panelFooter(site) {
       el("label", { class: "toggle" }, checkbox(l, "external"), "נפתח בלשונית חדשה")),
   });
   return panel(L.footer,
-    el("div", { id: "anc-footer-brand" },
-      imageField(site.footer, "logo", "לוגו בתחתית"),
-      textField(site.footer, "copyright", "זכויות יוצרים"),
-      textField(site.footer, "regions", "טקסט נוסף")),
-    el("div", { id: "anc-footer-links" },
-      el("p", { class: "muted", style: "font-size:.85rem" }, "קישורים בתחתית:"),
-      links));
+    imageField(site.footer, "logo", "לוגו בתחתית"),
+    textField(site.footer, "copyright", "זכויות יוצרים"),
+    textField(site.footer, "regions", "טקסט נוסף"),
+    el("p", { class: "muted", style: "font-size:.85rem" }, "קישורים בתחתית:"), links);
 }
 
 /* ---------------- sections ---------------- */
@@ -610,7 +415,7 @@ function panelSections(site) {
           el("button", { class: "btn btn-sm", type: "button", disabled: i === site.sections.length - 1, onclick: () => { move(site.sections, i, 1); draw(); markDirty(); } }, L.down),
           el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { if (confirm("למחוק את האזור הזה?")) { site.sections.splice(i, 1); draw(); markDirty(); } } }, "✕"))
       );
-      container.append(el("div", { class: "repeater-item", id: "sec-" + (s.id || "idx-" + i) }, head, sectionEditor(s)));
+      container.append(el("div", { class: "repeater-item" }, head, sectionEditor(s)));
     });
     // add-section control
     const sel = el("select", {});
@@ -890,16 +695,26 @@ async function publishToGitHub() {
 }
 
 function importFromFile() {
-  const inp = el("input", { type: "file", accept: ".html,.json,text/html,application/json", style: "display:none" });
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = ".html,.json,text/html,application/json";
+  inp.style.display = "none";
   inp.addEventListener("change", async () => {
+    inp.remove(); // remove only AFTER the change event fires (Chrome requires element in DOM until then)
     const f = inp.files[0];
     if (!f) return;
     try {
       const text = await f.text();
       let site;
-      if (/\.json$/i.test(f.name) || text.trim().startsWith("{")) site = JSON.parse(text);
-      else site = extractEmbedded(text);
-      if (!site || !site.sections) throw new Error("לא נמצא תוכן אתר בקובץ");
+      if (/\.json$/i.test(f.name) || text.trim().startsWith("{")) {
+        site = JSON.parse(text);
+      } else {
+        site = extractEmbedded(text);
+        if (!site) throw new Error(
+          'קובץ זה אינו מכיל נתוני CMS. יש לייבא קובץ שיוצא מהמערכת (לחיצה על "הורדת קובץ" או "פרסם לאינטרנט").'
+        );
+      }
+      if (!site.sections) throw new Error("מבנה הקובץ שגוי — חסר שדה sections.");
       state.site = site;
       saveDraft(site);
       state.dirty = false;
@@ -909,7 +724,9 @@ function importFromFile() {
       setStatus("טעינה נכשלה: " + err.message, "err");
     }
   });
-  document.body.appendChild(inp); inp.click(); inp.remove();
+  document.body.appendChild(inp);
+  inp.click();
+  // NOTE: do NOT call inp.remove() here — Chrome 68+ won't fire change on a disconnected input
 }
 
 function extractEmbedded(html) {
