@@ -138,6 +138,7 @@ function renderEditor() {
     el("span", { class: "spacer" }),
     $status,
     el("button", { class: "btn btn-sm", onclick: importFromFile }, L.import),
+    el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
     el("button", { class: "btn btn-sm", onclick: togglePreview }, L.preview),
     EDIT_PASSWORD ? el("button", { class: "btn btn-sm", onclick: () => { state.unlocked = false; renderLogin(); } }, L.logout) : null
   );
@@ -158,10 +159,25 @@ function renderEditor() {
   const savebar = el("div", { class: "savebar" }, ghBtn, dlBtn, saveBtn, note);
 
   const mainArea = el("div", { class: "main-area" }, $editorContent, savebar);
-  const preview = el("div", { class: "preview-pane hide" }, el("iframe", { title: "preview" }));
+
+  // Device toggle — the owner sees the site exactly as visitors will, phone included.
+  const devBar = el("div", { class: "device-bar" },
+    el("button", { class: "dev-btn active", onclick: (e) => setDevice(e.target, "desktop") }, "מחשב"),
+    el("button", { class: "dev-btn", onclick: (e) => setDevice(e.target, "mobile") }, "נייד"));
+  const preview = el("div", { class: "preview-pane" + (previewOn ? "" : " hide") },
+    devBar, el("div", { class: "frame-wrap" }, el("iframe", { title: "preview" })));
   $previewFrame = preview.querySelector("iframe");
 
-  $app.replaceChildren(topbar, el("div", { class: "shell", id: "shell" }, $sidebar, mainArea, preview));
+  const shell = el("div", { class: "shell" + (previewOn ? " with-preview" : ""), id: "shell" }, $sidebar, mainArea, preview);
+  $app.replaceChildren(topbar, shell);
+  if (previewOn) refreshPreview();
+}
+
+function setDevice(btn, mode) {
+  const pane = document.querySelector(".preview-pane");
+  if (!pane) return;
+  pane.classList.toggle("mobile", mode === "mobile");
+  pane.querySelectorAll(".dev-btn").forEach((b) => b.classList.toggle("active", b === btn));
 }
 
 function buildSidebarNav() {
@@ -195,10 +211,71 @@ function renderActivePanel() {
 }
 
 let previewDebounce;
+let autosaveT;
 function markDirty() {
   state.dirty = true;
-  setStatus("יש שינויים שלא נשמרו", "warn");
-  if (previewOn) { clearTimeout(previewDebounce); previewDebounce = setTimeout(refreshPreview, 400); }
+  setStatus("שומר…", "warn");
+  // Autosave — the owner never loses work and never has to think about saving.
+  clearTimeout(autosaveT);
+  autosaveT = setTimeout(() => {
+    try {
+      saveDraft(state.site);
+      state.dirty = false;
+      setStatus("נשמר אוטומטית ✓", "ok");
+    } catch (err) {
+      setStatus("שמירה נכשלה: " + err.message, "err");
+    }
+  }, 800);
+  if (previewOn) { clearTimeout(previewDebounce); previewDebounce = setTimeout(refreshPreview, 450); }
+}
+
+/* ---------------- version history ---------------- */
+const VERSIONS_KEY = STORAGE_KEY + ":versions";
+function loadVersions() {
+  try { return JSON.parse(localStorage.getItem(VERSIONS_KEY)) || []; } catch { return []; }
+}
+function pushVersion(label) {
+  try {
+    const v = loadVersions();
+    v.unshift({ t: Date.now(), label, site: JSON.parse(JSON.stringify(state.site)) });
+    if (v.length > 12) v.length = 12; // keep the last 12 snapshots
+    localStorage.setItem(VERSIONS_KEY, JSON.stringify(v));
+  } catch {} // quota errors must never block publishing
+}
+function showVersions() {
+  const versions = loadVersions();
+  const overlay = el("div", { class: "modal-overlay", onclick: (e) => { if (e.target === overlay) overlay.remove(); } });
+  const list = el("div", { class: "version-list" });
+  if (!versions.length) {
+    list.append(el("p", { class: "muted", style: "padding:14px;font-size:.85rem" },
+      "עדיין אין גרסאות שמורות. גרסה נשמרת אוטומטית בכל פרסום."));
+  }
+  versions.forEach((v, i) => {
+    const d = new Date(v.t);
+    const when = d.toLocaleDateString("he-IL") + " · " + d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+    list.append(el("div", { class: "version-item" },
+      el("div", {},
+        el("div", { style: "font-weight:600;font-size:.85rem" }, v.label || "גרסה"),
+        el("div", { class: "muted", style: "font-size:.74rem" }, when)),
+      el("button", {
+        class: "btn btn-sm", onclick: () => {
+          if (!confirm("לשחזר את הגרסה הזו? השינויים הנוכחיים יוחלפו.")) return;
+          pushVersion("לפני שחזור"); // safety net — current state becomes a version too
+          state.site = JSON.parse(JSON.stringify(v.site));
+          saveDraft(state.site);
+          overlay.remove();
+          renderEditor();
+          if (previewOn) refreshPreview();
+          setStatus("הגרסה שוחזרה ✓", "ok");
+        },
+      }, "שחזור")));
+  });
+  overlay.append(el("div", { class: "modal card" },
+    el("div", { class: "modal-head" },
+      el("span", {}, "היסטוריית גרסאות"),
+      el("button", { class: "btn btn-sm", onclick: () => overlay.remove() }, "סגירה")),
+    list));
+  document.body.append(overlay);
 }
 
 /* ---------------- field builders ---------------- */
@@ -413,6 +490,10 @@ function panelSections(site) {
         el("div", { class: "icon-btns" },
           el("button", { class: "btn btn-sm", type: "button", disabled: i === 0, onclick: () => { move(site.sections, i, -1); draw(); markDirty(); } }, L.up),
           el("button", { class: "btn btn-sm", type: "button", disabled: i === site.sections.length - 1, onclick: () => { move(site.sections, i, 1); draw(); markDirty(); } }, L.down),
+          el("button", { class: "btn btn-sm", type: "button", title: "שכפול האזור", onclick: () => {
+            const copy = JSON.parse(JSON.stringify(s)); copy.id = rid(s.type);
+            site.sections.splice(i + 1, 0, copy); draw(); markDirty();
+          } }, "שכפול"),
           el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { if (confirm("למחוק את האזור הזה?")) { site.sections.splice(i, 1); draw(); markDirty(); } } }, "✕"))
       );
       container.append(el("div", { class: "repeater-item" }, head, sectionEditor(s)));
@@ -662,6 +743,7 @@ async function downloadFile() {
     saveDraft(state.site);
     const html = await buildHtml();
     download((SITE_ID || "site") + "-index.html", html, "text/html");
+    pushVersion("הורדת קובץ");
     setStatus(L.published, "ok");
   } catch (err) {
     setStatus("הפרסום נכשל: " + err.message, "err");
@@ -688,6 +770,7 @@ async function publishToGitHub() {
       throw new Error(err.error || err.message || "HTTP " + res.status);
     }
 
+    pushVersion("פורסם לאינטרנט");
     setStatus("האתר פורסם ✓ — Vercel מעדכן תוך שניות", "ok");
   } catch (err) {
     setStatus("פרסום נכשל: " + err.message, "err");
@@ -782,7 +865,7 @@ function downscale(file, maxDim) {
 }
 
 /* ---------------- preview ---------------- */
-let previewOn = false;
+let previewOn = window.innerWidth > 960; // live preview on by default on desktop
 async function togglePreview() {
   previewOn = !previewOn;
   const shell = document.getElementById("shell");
