@@ -4,24 +4,24 @@
   "meta": {
     "lang": "he",
     "dir": "rtl",
-    "title": "פוד טראק | קפה ואוכל רחוב טוב",
-    "description": "פוד טראק עם קפה טרי, כריכים על לחם טרי, סלטים ומתוקים. בואו לטעום.",
-    "favicon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkZvb2QgdHJ1Y2siPgogIDxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgcng9IjciIGZpbGw9IiMzMzU4NUIiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0IDkpIj4KICAgIDxyZWN0IHg9IjEiIHk9IjYiIHdpZHRoPSIxNSIgaGVpZ2h0PSI5IiByeD0iMiIgZmlsbD0iI0Y2RjRFQyIvPgogICAgPHJlY3QgeD0iMTYiIHk9IjgiIHdpZHRoPSI3IiBoZWlnaHQ9IjciIHJ4PSIyIiBmaWxsPSIjQkY2RTNBIi8+CiAgICA8cmVjdCB4PSIxOCIgeT0iOS41IiB3aWR0aD0iMy41IiBoZWlnaHQ9IjMiIHJ4PSIxIiBmaWxsPSIjRjZGNEVDIi8+CiAgICA8cGF0aCBkPSJNMSA2IEgxNiBsLTEuNCAyIEgyLjQgWiIgZmlsbD0iI0JGNkUzQSIvPgogICAgPGNpcmNsZSBjeD0iNiIgY3k9IjE2IiByPSIyLjQiIGZpbGw9IiMyNjMxMkIiLz4KICAgIDxjaXJjbGUgY3g9IjE4IiBjeT0iMTYiIHI9IjIuNCIgZmlsbD0iIzI2MzEyQiIvPgogIDwvZz4KPC9zdmc+Cg==",
-    "themeColor": "#F6F4EC",
+    "title": "שם העסק שלכם | תיאור קצר של העסק",
+    "description": "כתבו כאן משפט תיאור קצר על העסק שלכם. הטקסט הזה מופיע בתוצאות החיפוש וברשתות החברתיות.",
+    "favicon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMicgd2lkdGg9JzMyJyBoZWlnaHQ9JzMyJyByb2xlPSdpbWcnIGFyaWEtbGFiZWw9J2ljb24nPgogIDxyZWN0IHdpZHRoPSczMicgaGVpZ2h0PSczMicgcng9JzcnIGZpbGw9JyM3QTdBODUnLz4KICA8dGV4dCB4PScxNicgeT0nMjEnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBc3Npc3RhbnQsIEFyaWFsLCBzYW5zLXNlcmlmJyBmb250LXNpemU9JzEzJyBmb250LXdlaWdodD0nNzAwJyBmaWxsPScjRjRGNEY2Jz7XnNeV15LXlTwvdGV4dD4KPC9zdmc+",
+    "themeColor": "#EDEDF0",
     "fontsHref": "https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@500;700;900&family=Amatic+SC:wght@700&display=swap"
   },
   "theme": {
     "colors": {
-      "bg": "#F6F4EC",
-      "bgDeep": "#EEEBDD",
+      "bg": "#EDEDF0",
+      "bgDeep": "#E2E2E7",
       "surface": "#FFFFFF",
-      "ink": "#26312B",
-      "inkSoft": "#54625B",
-      "sage": "#79A5A7",
-      "sageDeep": "#49777A",
-      "sageDark": "#33585B",
-      "olive": "#7C8A62",
-      "line": "#DDD8C6"
+      "ink": "#232328",
+      "inkSoft": "#5C5C66",
+      "sage": "#8A8A93",
+      "sageDeep": "#5C5C66",
+      "sageDark": "#3A3A42",
+      "olive": "#71717A",
+      "line": "#D6D6DC"
     },
     "radius": "14px",
     "fonts": {
@@ -30,17 +30,17 @@
     }
   },
   "brand": {
-    "name": "פוד טראק",
-    "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDAgMjIwIiB3aWR0aD0iNDQwIiBoZWlnaHQ9IjIyMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJGb29kIHRydWNrIGxvZ28gcGxhY2Vob2xkZXIiPgogIDxyZWN0IHdpZHRoPSI0NDAiIGhlaWdodD0iMjIwIiBmaWxsPSJub25lIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzAgNDQpIj4KICAgIDwhLS0gdHJ1Y2sgYm9keSAtLT4KICAgIDxyZWN0IHg9IjYiIHk9IjQwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9Ijc0IiByeD0iMTIiIGZpbGw9IiMzMzU4NUIiLz4KICAgIDxyZWN0IHg9IjE4NiIgeT0iNjAiIHdpZHRoPSI3NiIgaGVpZ2h0PSI1NCIgcng9IjEwIiBmaWxsPSIjNDk3NzdBIi8+CiAgICA8cmVjdCB4PSIxOTYiIHk9IjcwIiB3aWR0aD0iNDAiIGhlaWdodD0iMjgiIHJ4PSI1IiBmaWxsPSIjRjZGNEVDIi8+CiAgICA8IS0tIGF3bmluZyAtLT4KICAgIDxwYXRoIGQ9Ik0wIDQwIEgxOTYgbC0xMiAxOCBIMTIgWiIgZmlsbD0iI0JGNkUzQSIvPgogICAgPGcgZmlsbD0iI2E4NWEyYyI+CiAgICAgIDxyZWN0IHg9IjE4IiB5PSI0MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjE4Ii8+CiAgICAgIDxyZWN0IHg9IjYyIiB5PSI0MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjE4Ii8+CiAgICAgIDxyZWN0IHg9IjEwNiIgeT0iNDAiIHdpZHRoPSIyMiIgaGVpZ2h0PSIxOCIvPgogICAgICA8cmVjdCB4PSIxNTAiIHk9IjQwIiB3aWR0aD0iMjIiIGhlaWdodD0iMTgiLz4KICAgIDwvZz4KICAgIDwhLS0gd2hlZWxzIC0tPgogICAgPGNpcmNsZSBjeD0iNjAiIGN5PSIxMjAiIHI9IjIwIiBmaWxsPSIjMjYzMTJCIi8+CiAgICA8Y2lyY2xlIGN4PSI2MCIgY3k9IjEyMCIgcj0iOSIgZmlsbD0iI0Y2RjRFQyIvPgogICAgPGNpcmNsZSBjeD0iMjE0IiBjeT0iMTIwIiByPSIyMCIgZmlsbD0iIzI2MzEyQiIvPgogICAgPGNpcmNsZSBjeD0iMjE0IiBjeT0iMTIwIiByPSI5IiBmaWxsPSIjRjZGNEVDIi8+CiAgICA8IS0tIGZvcmsgJiBrbmlmZSBlbWJsZW0gLS0+CiAgICA8ZyBzdHJva2U9IiNGNkY0RUMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIj4KICAgICAgPHBhdGggZD0iTTg0IDYwIHYzNCBNOTIgNjAgdjM0IE0xMDAgNjAgdjM0Ii8+CiAgICAgIDxwYXRoIGQ9Ik05NiA3OCB2MTYiLz4KICAgIDwvZz4KICA8L2c+CiAgPHRleHQgeD0iMjIwIiB5PSIxODYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI3MDAiIGxldHRlci1zcGFjaW5nPSIzIiBmaWxsPSIjMjYzMTJCIj5GT09EJiMxNjA7VFJVQ0s8L3RleHQ+Cjwvc3ZnPgo="
+    "name": "שם העסק",
+    "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0NDAgMjIwJyB3aWR0aD0nNDQwJyBoZWlnaHQ9JzIyMCcgcm9sZT0naW1nJyBhcmlhLWxhYmVsPSdwbGFjZWhvbGRlciBsb2dvJz4KICA8cmVjdCB3aWR0aD0nNDQwJyBoZWlnaHQ9JzIyMCcgZmlsbD0nbm9uZScvPgogIDxyZWN0IHg9JzYwJyB5PSc0MCcgd2lkdGg9JzMyMCcgaGVpZ2h0PScxNDAnIHJ4PScxNicgZmlsbD0nbm9uZScgc3Ryb2tlPScjN0E3QTg1JyBzdHJva2Utd2lkdGg9JzQnIHN0cm9rZS1kYXNoYXJyYXk9JzEyIDEwJy8+CiAgPHRleHQgeD0nMjIwJyB5PScxMTgnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBc3Npc3RhbnQsIEFyaWFsLCBzYW5zLXNlcmlmJyBmb250LXNpemU9JzI2JyBmb250LXdlaWdodD0nNzAwJyBmaWxsPScjNTQ1NDVFJz7XlNec15XXkteVINep15zXmjwvdGV4dD4KICA8dGV4dCB4PScyMjAnIHk9JzE1MCcgdGV4dC1hbmNob3I9J21pZGRsZScgZm9udC1mYW1pbHk9J0Fzc2lzdGFudCwgQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nMTUnIGZpbGw9JyM4QThBOTMnPteU16LXnNeVINeb15DXnyDXkdee16LXqNeb16og15TXoNeZ15TXldecPC90ZXh0Pgo8L3N2Zz4="
   },
   "nav": {
     "links": [
       {
-        "label": "הסיפור",
+        "label": "אודות",
         "href": "#story"
       },
       {
-        "label": "התפריט",
+        "label": "התפריט / השירותים",
         "href": "#menu"
       },
       {
@@ -67,11 +67,11 @@
       "type": "hero",
       "visible": true,
       "data": {
-        "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDAgMjIwIiB3aWR0aD0iNDQwIiBoZWlnaHQ9IjIyMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJGb29kIHRydWNrIGxvZ28gcGxhY2Vob2xkZXIiPgogIDxyZWN0IHdpZHRoPSI0NDAiIGhlaWdodD0iMjIwIiBmaWxsPSJub25lIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzAgNDQpIj4KICAgIDwhLS0gdHJ1Y2sgYm9keSAtLT4KICAgIDxyZWN0IHg9IjYiIHk9IjQwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9Ijc0IiByeD0iMTIiIGZpbGw9IiMzMzU4NUIiLz4KICAgIDxyZWN0IHg9IjE4NiIgeT0iNjAiIHdpZHRoPSI3NiIgaGVpZ2h0PSI1NCIgcng9IjEwIiBmaWxsPSIjNDk3NzdBIi8+CiAgICA8cmVjdCB4PSIxOTYiIHk9IjcwIiB3aWR0aD0iNDAiIGhlaWdodD0iMjgiIHJ4PSI1IiBmaWxsPSIjRjZGNEVDIi8+CiAgICA8IS0tIGF3bmluZyAtLT4KICAgIDxwYXRoIGQ9Ik0wIDQwIEgxOTYgbC0xMiAxOCBIMTIgWiIgZmlsbD0iI0JGNkUzQSIvPgogICAgPGcgZmlsbD0iI2E4NWEyYyI+CiAgICAgIDxyZWN0IHg9IjE4IiB5PSI0MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjE4Ii8+CiAgICAgIDxyZWN0IHg9IjYyIiB5PSI0MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjE4Ii8+CiAgICAgIDxyZWN0IHg9IjEwNiIgeT0iNDAiIHdpZHRoPSIyMiIgaGVpZ2h0PSIxOCIvPgogICAgICA8cmVjdCB4PSIxNTAiIHk9IjQwIiB3aWR0aD0iMjIiIGhlaWdodD0iMTgiLz4KICAgIDwvZz4KICAgIDwhLS0gd2hlZWxzIC0tPgogICAgPGNpcmNsZSBjeD0iNjAiIGN5PSIxMjAiIHI9IjIwIiBmaWxsPSIjMjYzMTJCIi8+CiAgICA8Y2lyY2xlIGN4PSI2MCIgY3k9IjEyMCIgcj0iOSIgZmlsbD0iI0Y2RjRFQyIvPgogICAgPGNpcmNsZSBjeD0iMjE0IiBjeT0iMTIwIiByPSIyMCIgZmlsbD0iIzI2MzEyQiIvPgogICAgPGNpcmNsZSBjeD0iMjE0IiBjeT0iMTIwIiByPSI5IiBmaWxsPSIjRjZGNEVDIi8+CiAgICA8IS0tIGZvcmsgJiBrbmlmZSBlbWJsZW0gLS0+CiAgICA8ZyBzdHJva2U9IiNGNkY0RUMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIj4KICAgICAgPHBhdGggZD0iTTg0IDYwIHYzNCBNOTIgNjAgdjM0IE0xMDAgNjAgdjM0Ii8+CiAgICAgIDxwYXRoIGQ9Ik05NiA3OCB2MTYiLz4KICAgIDwvZz4KICA8L2c+CiAgPHRleHQgeD0iMjIwIiB5PSIxODYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI3MDAiIGxldHRlci1zcGFjaW5nPSIzIiBmaWxsPSIjMjYzMTJCIj5GT09EJiMxNjA7VFJVQ0s8L3RleHQ+Cjwvc3ZnPgo=",
+        "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0NDAgMjIwJyB3aWR0aD0nNDQwJyBoZWlnaHQ9JzIyMCcgcm9sZT0naW1nJyBhcmlhLWxhYmVsPSdwbGFjZWhvbGRlciBsb2dvJz4KICA8cmVjdCB3aWR0aD0nNDQwJyBoZWlnaHQ9JzIyMCcgZmlsbD0nbm9uZScvPgogIDxyZWN0IHg9JzYwJyB5PSc0MCcgd2lkdGg9JzMyMCcgaGVpZ2h0PScxNDAnIHJ4PScxNicgZmlsbD0nbm9uZScgc3Ryb2tlPScjN0E3QTg1JyBzdHJva2Utd2lkdGg9JzQnIHN0cm9rZS1kYXNoYXJyYXk9JzEyIDEwJy8+CiAgPHRleHQgeD0nMjIwJyB5PScxMTgnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBc3Npc3RhbnQsIEFyaWFsLCBzYW5zLXNlcmlmJyBmb250LXNpemU9JzI2JyBmb250LXdlaWdodD0nNzAwJyBmaWxsPScjNTQ1NDVFJz7XlNec15XXkteVINep15zXmjwvdGV4dD4KICA8dGV4dCB4PScyMjAnIHk9JzE1MCcgdGV4dC1hbmNob3I9J21pZGRsZScgZm9udC1mYW1pbHk9J0Fzc2lzdGFudCwgQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nMTUnIGZpbGw9JyM4QThBOTMnPteU16LXnNeVINeb15DXnyDXkdee16LXqNeb16og15TXoNeZ15TXldecPC90ZXh0Pgo8L3N2Zz4=",
         "logoAlt": "הלוגו של העסק",
-        "background": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDgwMCIgd2lkdGg9IjEyMDAiIGhlaWdodD0iODAwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9Ildhcm0gYmFja2dyb3VuZCBwbGFjZWhvbGRlciIgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQgc2xpY2UiPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJza3kiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRjNFQUQ4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0U2REVDOCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iODAwIiBmaWxsPSJ1cmwoI3NreSkiLz4KICA8Y2lyY2xlIGN4PSI5MzAiIGN5PSIyMTAiIHI9IjEyMCIgZmlsbD0iI0U5RDlCNiIgb3BhY2l0eT0iMC43Ii8+CiAgPHBhdGggZD0iTTAgNTYwIFEzMDAgNDcwIDYwMCA1NDUgVDEyMDAgNTIwIFY4MDAgSDAgWiIgZmlsbD0iI0NCRDNCRSIgb3BhY2l0eT0iMC44NSIvPgogIDxwYXRoIGQ9Ik0wIDY0MCBRMzIwIDU2MCA2NDAgNjI2IFQxMjAwIDYwNiBWODAwIEgwIFoiIGZpbGw9IiNBOUJCQTAiIG9wYWNpdHk9IjAuODUiLz4KICA8cGF0aCBkPSJNMCA3MTYgUTM2MCA2NTQgNzIwIDcwOCBUMTIwMCA3MDAgVjgwMCBIMCBaIiBmaWxsPSIjN0M4QTYyIiBvcGFjaXR5PSIwLjgiLz4KPC9zdmc+Cg==",
-        "headline": "האוכל הכי טוב,\nבצד הדרך.",
-        "lead": "קפה טרי, אוכל רחוב משובח ואווירה טובה. החליפו את הטקסט הזה בסיפור שלכם.",
+        "background": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMjAwIDgwMCcgd2lkdGg9JzEyMDAnIGhlaWdodD0nODAwJyByb2xlPSdpbWcnIGFyaWEtbGFiZWw9J3BsYWNlaG9sZGVyJyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSd4TWlkWU1pZCBzbGljZSc+CiAgPHJlY3Qgd2lkdGg9JzEyMDAnIGhlaWdodD0nODAwJyBmaWxsPScjRURFREYwJy8+CiAgPHJlY3QgeD0nMicgeT0nMicgd2lkdGg9JzExOTYnIGhlaWdodD0nNzk2JyBmaWxsPSdub25lJyBzdHJva2U9JyM1NDU0NUUnIHN0cm9rZS13aWR0aD0nMycgc3Ryb2tlLWRhc2hhcnJheT0nMTAgOCcgb3BhY2l0eT0nMC41NScvPgogIDxnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzU0NTQ1RScgc3Ryb2tlLXdpZHRoPScyMCcgb3BhY2l0eT0nMC42NSc+CiAgICA8cmVjdCB4PSc1MzAnIHk9JzM0OCcgd2lkdGg9JzE0MCcgaGVpZ2h0PScxMDQnIHJ4PScxNCcvPgogICAgPGNpcmNsZSBjeD0nNTcwJyBjeT0nMzgyJyByPScxNicvPgogICAgPHBhdGggZD0nTSA1MzAgNDM2IGwgNDYgLTQwIGwgMzQgMjggbCA0MCAtMzQgbCA0MCA0NiB6Jy8+CiAgPC9nPgogIDx0ZXh0IHg9JzYwMCcgeT0nNDk2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXNzaXN0YW50LCBBcmlhbCwgc2Fucy1zZXJpZicgZm9udC1zaXplPSc0Mi44NTcxNDI4NTcxNDI4NTQnIGZvbnQtd2VpZ2h0PSc3MDAnIGZpbGw9JyM1NDU0NUUnIG9wYWNpdHk9JzAuNzUnPtep15nXnteVINeb15DXnyDXqtee15XXoNeqINeo16fXojwvdGV4dD4KPC9zdmc+",
+        "headline": "כותרת ראשית\nשל האתר שלכם",
+        "lead": "זהו אזור הפתיחה של האתר. כתבו כאן משפט או שניים שמסבירים מי אתם ומה אתם מציעים. כל הטקסט הזה נערך במערכת הניהול.",
         "ctas": [
           {
             "label": "לתפריט המלא",
@@ -91,10 +91,10 @@
       "type": "richtext",
       "visible": true,
       "data": {
-        "heading": "הסיפור שלנו",
+        "heading": "כותרת אזור הסיפור",
         "paragraphs": [
-          "כאן מספרים איך הכול התחיל — מי אתם, מה אתם אוהבים להכין, ולמה דווקא פה. שני־שלושה משפטים חמים שגורמים לאנשים לרצות לעצור.",
-          "אפשר להוסיף עוד פסקה על המנות, על חומרי הגלם, או על האווירה. את כל הטקסט הזה עורכים בקלות במערכת הניהול."
+          "זהו אזור טקסט חופשי לספר את הסיפור של העסק שלכם — מי אתם, מה אתם עושים, ולמה דווקא אתם. כתבו כאן שני-שלושה משפטים שמייצגים את העסק.",
+          "ניתן להוסיף כאן פסקה נוספת, למשל על השירות, המוצרים, או הערכים של העסק. כל הטקסט הזה נערך בקלות במערכת הניהול."
         ]
       }
     },
@@ -103,65 +103,61 @@
       "type": "menu",
       "visible": true,
       "data": {
-        "heading": "מה אוכלים היום?",
-        "intro": "הכול טרי. ערכו את הקטגוריות, המנות והמחירים שלכם במערכת הניהול. טבעוני וללא גלוטן מסומנים ליד כל מנה.",
+        "heading": "כותרת אזור התפריט",
+        "intro": "זהו אזור התפריט או רשימת השירותים שלכם. ערכו כאן את הקטגוריות, הפריטים והמחירים במערכת הניהול.",
         "currency": "₪",
         "categories": [
           {
-            "id": "cat-sandwiches",
-            "navLabel": "כריכים",
-            "title": "כריכים",
+            "id": "cat-1",
+            "navLabel": "קטגוריה 1",
+            "title": "קטגוריה 1",
             "groups": [
               {
                 "items": [
                   {
-                    "name": "כריך גבינות",
-                    "price": "39",
+                    "name": "שם הפריט",
+                    "price": "0",
                     "tags": [],
-                    "desc": "מוצרלה, עגבנייה, בזיליקום ופסטו בלחם טרי."
+                    "desc": "תיאור קצר של הפריט."
                   },
                   {
-                    "name": "כריך טבעוני",
-                    "price": "42",
-                    "tags": [
-                      "vegan"
-                    ],
-                    "desc": "חציל שרוף, פלפל קלוי, טחינה וירקות העונה."
+                    "name": "שם הפריט",
+                    "price": "0",
+                    "tags": [],
+                    "desc": "תיאור קצר של הפריט."
                   },
                   {
-                    "name": "כריך טונה",
-                    "price": "44",
+                    "name": "שם הפריט",
+                    "price": "0",
                     "tags": [],
-                    "desc": "טונה, ביצה, חמוצים ובצל סגול."
+                    "desc": "תיאור קצר של הפריט."
                   }
                 ]
               }
             ]
           },
           {
-            "id": "cat-drinks",
-            "navLabel": "שתייה",
-            "title": "משקאות",
+            "id": "cat-2",
+            "navLabel": "קטגוריה 2",
+            "title": "קטגוריה 2",
             "groups": [
               {
                 "items": [
                   {
-                    "name": "אספרסו",
-                    "price": "9",
+                    "name": "שם הפריט",
+                    "price": "0",
                     "tags": []
                   },
                   {
-                    "name": "קפוצ'ינו",
-                    "price": "14",
+                    "name": "שם הפריט",
+                    "price": "0",
                     "tags": []
                   },
                   {
-                    "name": "לימונדה",
-                    "price": "16",
-                    "tags": [
-                      "vegan"
-                    ],
-                    "desc": "נענע ולימון סחוט טרי."
+                    "name": "שם הפריט",
+                    "price": "0",
+                    "tags": [],
+                    "desc": "תיאור קצר של הפריט."
                   }
                 ]
               }
@@ -175,20 +171,20 @@
       "type": "gallery",
       "visible": true,
       "data": {
-        "heading": "רגעים מהדוכן",
-        "intro": "החליפו את התמונות האלה בתמונות אמיתיות של העסק — מנות, אנשים, אווירה.",
+        "heading": "כותרת אזור הגלריה",
+        "intro": "זהו אזור הגלריה. החליפו את התמונות האלה בתמונות אמיתיות של העסק שלכם דרך מערכת הניהול.",
         "images": [
           {
-            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNjAwIiB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJHYWxsZXJ5IHBsYWNlaG9sZGVyIDEiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj4KICA8cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iI0VBRTNEMiIvPgogIDxjaXJjbGUgY3g9IjQwMCIgY3k9IjMwMCIgcj0iMTIwIiBmaWxsPSIjQkY2RTNBIiBvcGFjaXR5PSIwLjE4Ii8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDAwIDMwMCkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzllNTYyNiIgc3Ryb2tlLXdpZHRoPSI3IiBvcGFjaXR5PSIwLjciPgogICAgPHJlY3QgeD0iLTcwIiB5PSItNTIiIHdpZHRoPSIxNDAiIGhlaWdodD0iMTA0IiByeD0iMTIiLz4KICAgIDxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyOCIvPgogIDwvZz4KICA8dGV4dCB4PSI0MDAiIHk9IjQ3MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjM0IiBmaWxsPSIjOWU1NjI2IiBvcGFjaXR5PSIwLjciPteq157Xldeg15QgMTwvdGV4dD4KPC9zdmc+Cg==",
-            "alt": "תמונה לדוגמה"
+            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4MDAgNjAwJyB3aWR0aD0nODAwJyBoZWlnaHQ9JzYwMCcgcm9sZT0naW1nJyBhcmlhLWxhYmVsPSdwbGFjZWhvbGRlcicgcHJlc2VydmVBc3BlY3RSYXRpbz0neE1pZFlNaWQgc2xpY2UnPgogIDxyZWN0IHdpZHRoPSc4MDAnIGhlaWdodD0nNjAwJyBmaWxsPScjRURFREYwJy8+CiAgPHJlY3QgeD0nMicgeT0nMicgd2lkdGg9Jzc5NicgaGVpZ2h0PSc1OTYnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzU0NTQ1RScgc3Ryb2tlLXdpZHRoPSczJyBzdHJva2UtZGFzaGFycmF5PScxMCA4JyBvcGFjaXR5PScwLjU1Jy8+CiAgPGcgZmlsbD0nbm9uZScgc3Ryb2tlPScjNTQ1NDVFJyBzdHJva2Utd2lkdGg9JzEzLjMzMzMzMzMzMzMzMzMzNCcgb3BhY2l0eT0nMC42NSc+CiAgICA8cmVjdCB4PSczMzAnIHk9JzI0OCcgd2lkdGg9JzE0MCcgaGVpZ2h0PScxMDQnIHJ4PScxNCcvPgogICAgPGNpcmNsZSBjeD0nMzcwJyBjeT0nMjgyJyByPScxNicvPgogICAgPHBhdGggZD0nTSAzMzAgMzM2IGwgNDYgLTQwIGwgMzQgMjggbCA0MCAtMzQgbCA0MCA0NiB6Jy8+CiAgPC9nPgogIDx0ZXh0IHg9JzQwMCcgeT0nMzk2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXNzaXN0YW50LCBBcmlhbCwgc2Fucy1zZXJpZicgZm9udC1zaXplPScyOC41NzE0Mjg1NzE0Mjg1NzMnIGZvbnQtd2VpZ2h0PSc3MDAnIGZpbGw9JyM1NDU0NUUnIG9wYWNpdHk9JzAuNzUnPtep15nXnteVINeb15DXnyDXqtee15XXoNeUIDE8L3RleHQ+Cjwvc3ZnPg==",
+            "alt": "שימו כאן תמונה"
           },
           {
-            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNjAwIiB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJHYWxsZXJ5IHBsYWNlaG9sZGVyIDIiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj4KICA8cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iI0UyRTZEQSIvPgogIDxjaXJjbGUgY3g9IjQwMCIgY3k9IjMwMCIgcj0iMTIwIiBmaWxsPSIjNzlBNUE3IiBvcGFjaXR5PSIwLjIwIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDAwIDMwMCkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzQ5Nzc3QSIgc3Ryb2tlLXdpZHRoPSI3IiBvcGFjaXR5PSIwLjciPgogICAgPHJlY3QgeD0iLTcwIiB5PSItNTIiIHdpZHRoPSIxNDAiIGhlaWdodD0iMTA0IiByeD0iMTIiLz4KICAgIDxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyOCIvPgogIDwvZz4KICA8dGV4dCB4PSI0MDAiIHk9IjQ3MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjM0IiBmaWxsPSIjNDk3NzdBIiBvcGFjaXR5PSIwLjciPteq157Xldeg15QgMjwvdGV4dD4KPC9zdmc+Cg==",
-            "alt": "תמונה לדוגמה"
+            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4MDAgNjAwJyB3aWR0aD0nODAwJyBoZWlnaHQ9JzYwMCcgcm9sZT0naW1nJyBhcmlhLWxhYmVsPSdwbGFjZWhvbGRlcicgcHJlc2VydmVBc3BlY3RSYXRpbz0neE1pZFlNaWQgc2xpY2UnPgogIDxyZWN0IHdpZHRoPSc4MDAnIGhlaWdodD0nNjAwJyBmaWxsPScjRTRFNEU5Jy8+CiAgPHJlY3QgeD0nMicgeT0nMicgd2lkdGg9Jzc5NicgaGVpZ2h0PSc1OTYnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzRBNEE1NCcgc3Ryb2tlLXdpZHRoPSczJyBzdHJva2UtZGFzaGFycmF5PScxMCA4JyBvcGFjaXR5PScwLjU1Jy8+CiAgPGcgZmlsbD0nbm9uZScgc3Ryb2tlPScjNEE0QTU0JyBzdHJva2Utd2lkdGg9JzEzLjMzMzMzMzMzMzMzMzMzNCcgb3BhY2l0eT0nMC42NSc+CiAgICA8cmVjdCB4PSczMzAnIHk9JzI0OCcgd2lkdGg9JzE0MCcgaGVpZ2h0PScxMDQnIHJ4PScxNCcvPgogICAgPGNpcmNsZSBjeD0nMzcwJyBjeT0nMjgyJyByPScxNicvPgogICAgPHBhdGggZD0nTSAzMzAgMzM2IGwgNDYgLTQwIGwgMzQgMjggbCA0MCAtMzQgbCA0MCA0NiB6Jy8+CiAgPC9nPgogIDx0ZXh0IHg9JzQwMCcgeT0nMzk2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXNzaXN0YW50LCBBcmlhbCwgc2Fucy1zZXJpZicgZm9udC1zaXplPScyOC41NzE0Mjg1NzE0Mjg1NzMnIGZvbnQtd2VpZ2h0PSc3MDAnIGZpbGw9JyM0QTRBNTQnIG9wYWNpdHk9JzAuNzUnPtep15nXnteVINeb15DXnyDXqtee15XXoNeUIDI8L3RleHQ+Cjwvc3ZnPg==",
+            "alt": "שימו כאן תמונה"
           },
           {
-            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNjAwIiB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJHYWxsZXJ5IHBsYWNlaG9sZGVyIDMiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj4KICA8cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iI0U3RTFEMCIvPgogIDxjaXJjbGUgY3g9IjQwMCIgY3k9IjMwMCIgcj0iMTIwIiBmaWxsPSIjN0M4QTYyIiBvcGFjaXR5PSIwLjIwIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDAwIDMwMCkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzU1NjMzQyIgc3Ryb2tlLXdpZHRoPSI3IiBvcGFjaXR5PSIwLjciPgogICAgPHJlY3QgeD0iLTcwIiB5PSItNTIiIHdpZHRoPSIxNDAiIGhlaWdodD0iMTA0IiByeD0iMTIiLz4KICAgIDxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyOCIvPgogIDwvZz4KICA8dGV4dCB4PSI0MDAiIHk9IjQ3MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsIHNlcmlmIiBmb250LXNpemU9IjM0IiBmaWxsPSIjNTU2MzNDIiBvcGFjaXR5PSIwLjciPteq157Xldeg15QgMzwvdGV4dD4KPC9zdmc+Cg==",
-            "alt": "תמונה לדוגמה"
+            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4MDAgNjAwJyB3aWR0aD0nODAwJyBoZWlnaHQ9JzYwMCcgcm9sZT0naW1nJyBhcmlhLWxhYmVsPSdwbGFjZWhvbGRlcicgcHJlc2VydmVBc3BlY3RSYXRpbz0neE1pZFlNaWQgc2xpY2UnPgogIDxyZWN0IHdpZHRoPSc4MDAnIGhlaWdodD0nNjAwJyBmaWxsPScjRURFREYwJy8+CiAgPHJlY3QgeD0nMicgeT0nMicgd2lkdGg9Jzc5NicgaGVpZ2h0PSc1OTYnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzU0NTQ1RScgc3Ryb2tlLXdpZHRoPSczJyBzdHJva2UtZGFzaGFycmF5PScxMCA4JyBvcGFjaXR5PScwLjU1Jy8+CiAgPGcgZmlsbD0nbm9uZScgc3Ryb2tlPScjNTQ1NDVFJyBzdHJva2Utd2lkdGg9JzEzLjMzMzMzMzMzMzMzMzMzNCcgb3BhY2l0eT0nMC42NSc+CiAgICA8cmVjdCB4PSczMzAnIHk9JzI0OCcgd2lkdGg9JzE0MCcgaGVpZ2h0PScxMDQnIHJ4PScxNCcvPgogICAgPGNpcmNsZSBjeD0nMzcwJyBjeT0nMjgyJyByPScxNicvPgogICAgPHBhdGggZD0nTSAzMzAgMzM2IGwgNDYgLTQwIGwgMzQgMjggbCA0MCAtMzQgbCA0MCA0NiB6Jy8+CiAgPC9nPgogIDx0ZXh0IHg9JzQwMCcgeT0nMzk2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXNzaXN0YW50LCBBcmlhbCwgc2Fucy1zZXJpZicgZm9udC1zaXplPScyOC41NzE0Mjg1NzE0Mjg1NzMnIGZvbnQtd2VpZ2h0PSc3MDAnIGZpbGw9JyM1NDU0NUUnIG9wYWNpdHk9JzAuNzUnPtep15nXnteVINeb15DXnyDXqtee15XXoNeUIDM8L3RleHQ+Cjwvc3ZnPg==",
+            "alt": "שימו כאן תמונה"
           }
         ]
       }
@@ -198,9 +194,9 @@
       "type": "media",
       "visible": true,
       "data": {
-        "poster": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIwIDEwODAiIHdpZHRoPSIxOTIwIiBoZWlnaHQ9IjEwODAiIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0iUGhvdG8gcGxhY2Vob2xkZXIiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIHNsaWNlIj4KICA8cmVjdCB3aWR0aD0iMTkyMCIgaGVpZ2h0PSIxMDgwIiBmaWxsPSIjRUVFQkREIi8+CiAgPHJlY3Qgd2lkdGg9IjE5MjAiIGhlaWdodD0iMTA4MCIgZmlsbD0iIzc5QTVBNyIgb3BhY2l0eT0iMC4xMCIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDk2MCA1NDApIiBmaWxsPSJub25lIiBzdHJva2U9IiM3OUE1QTciIHN0cm9rZS13aWR0aD0iMTAiIG9wYWNpdHk9IjAuODUiPgogICAgPHJlY3QgeD0iLTE1MCIgeT0iLTExMCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMjAiIHJ4PSIyMCIvPgogICAgPGNpcmNsZSBjeD0iMCIgY3k9IjAiIHI9IjU4Ii8+CiAgICA8Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMjQiIGZpbGw9IiM3OUE1QTciIHN0cm9rZT0ibm9uZSIgb3BhY2l0eT0iMC41Ii8+CiAgICA8cmVjdCB4PSItMTUwIiB5PSItMTUwIiB3aWR0aD0iOTIiIGhlaWdodD0iNDIiIHJ4PSIxMiIgZmlsbD0iIzc5QTVBNyIgc3Ryb2tlPSJub25lIiBvcGFjaXR5PSIwLjUiLz4KICA8L2c+CiAgPHRleHQgeD0iOTYwIiB5PSI3NjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCBzZXJpZiIgZm9udC1zaXplPSI0NiIgZmlsbD0iIzU0NjI1QiIgb3BhY2l0eT0iMC43Ij7Xqtee15XXoNeUIC8g15XXmdeT15DXlSDXqdecINeU16LXodenPC90ZXh0Pgo8L3N2Zz4K",
+        "poster": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxOTIwIDEwODAnIHdpZHRoPScxOTIwJyBoZWlnaHQ9JzEwODAnIHJvbGU9J2ltZycgYXJpYS1sYWJlbD0ncGxhY2Vob2xkZXInIHByZXNlcnZlQXNwZWN0UmF0aW89J3hNaWRZTWlkIHNsaWNlJz4KICA8cmVjdCB3aWR0aD0nMTkyMCcgaGVpZ2h0PScxMDgwJyBmaWxsPScjRURFREYwJy8+CiAgPHJlY3QgeD0nMicgeT0nMicgd2lkdGg9JzE5MTYnIGhlaWdodD0nMTA3NicgZmlsbD0nbm9uZScgc3Ryb2tlPScjNTQ1NDVFJyBzdHJva2Utd2lkdGg9JzMnIHN0cm9rZS1kYXNoYXJyYXk9JzEwIDgnIG9wYWNpdHk9JzAuNTUnLz4KICA8ZyBmaWxsPSdub25lJyBzdHJva2U9JyM1NDU0NUUnIHN0cm9rZS13aWR0aD0nMzInIG9wYWNpdHk9JzAuNjUnPgogICAgPHJlY3QgeD0nODkwJyB5PSc0ODgnIHdpZHRoPScxNDAnIGhlaWdodD0nMTA0JyByeD0nMTQnLz4KICAgIDxjaXJjbGUgY3g9JzkzMCcgY3k9JzUyMicgcj0nMTYnLz4KICAgIDxwYXRoIGQ9J00gODkwIDU3NiBsIDQ2IC00MCBsIDM0IDI4IGwgNDAgLTM0IGwgNDAgNDYgeicvPgogIDwvZz4KICA8dGV4dCB4PSc5NjAnIHk9JzYzNicgdGV4dC1hbmNob3I9J21pZGRsZScgZm9udC1mYW1pbHk9J0Fzc2lzdGFudCwgQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nNjguNTcxNDI4NTcxNDI4NTcnIGZvbnQtd2VpZ2h0PSc3MDAnIGZpbGw9JyM1NDU0NUUnIG9wYWNpdHk9JzAuNzUnPtep15nXnteVINeb15DXnyDXqtee15XXoNeUINeQ15Ug15XXmdeT15DXlTwvdGV4dD4KPC9zdmc+",
         "video": "",
-        "sectionLabel": "תמונת אווירה של העסק",
+        "sectionLabel": "שימו כאן תמונה או וידאו של העסק",
         "videoLabel": "וידאו של העסק"
       }
     },
@@ -209,42 +205,42 @@
       "type": "locations",
       "visible": true,
       "data": {
-        "heading": "איפה תמצאו אותנו",
-        "intro": "בחרו סניף, לחצו על הוויז ויוצאים. עדכנו את הכתובת והשעות במערכת הניהול.",
-        "footnote": "לפעמים השעות משתנות. שווה להציץ באינסטגרם לפני שיוצאים.",
+        "heading": "כותרת אזור הסניפים",
+        "intro": "זהו אזור המיקומים והשעות. הוסיפו כאן את הסניפים, הכתובות והשעות שלכם דרך מערכת הניהול.",
+        "footnote": "ניתן להוסיף כאן הערה כללית, למשל שהשעות עשויות להשתנות.",
         "branches": [
           {
             "id": "main",
-            "name": "הסניף שלנו",
-            "desc": "כתבו כאן איפה אתם חונים ומה מסביב. לחיצה על הכפתור פותחת ניווט בוויז.",
+            "name": "שם הסניף",
+            "desc": "כתבו כאן איפה הסניף נמצא ומה מסביב. לחיצה על הכפתור פותחת ניווט בוויז.",
             "waze": {
               "lat": 32.0853,
               "lng": 34.7818
             },
             "hours": {
               "0": [
-                8,
+                9,
                 17
               ],
               "1": [
-                8,
+                9,
                 17
               ],
               "2": [
-                8,
+                9,
                 17
               ],
               "3": [
-                8,
+                9,
                 17
               ],
               "4": [
-                8,
+                9,
                 17
               ],
               "5": [
-                8,
-                17
+                9,
+                14
               ],
               "6": null
             }
@@ -257,12 +253,12 @@
       "type": "social",
       "visible": true,
       "data": {
-        "heading": "מתעדכנים אצלנו ברשתות",
-        "intro": "שינויים בשעות, מנות חדשות ואירועים — הכול מתפרסם קודם כאן.",
+        "heading": "כותרת אזור הקשר",
+        "intro": "זהו אזור הרשתות החברתיות ויצירת הקשר. עדכנו כאן את הקישורים שלכם דרך מערכת הניהול.",
         "links": [
           {
             "network": "instagram",
-            "label": "@yourbusiness",
+            "label": "@your_business",
             "url": "https://instagram.com/"
           },
           {
@@ -275,8 +271,8 @@
     }
   ],
   "footer": {
-    "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDAgMjIwIiB3aWR0aD0iNDQwIiBoZWlnaHQ9IjIyMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJGb29kIHRydWNrIGxvZ28gcGxhY2Vob2xkZXIiPgogIDxyZWN0IHdpZHRoPSI0NDAiIGhlaWdodD0iMjIwIiBmaWxsPSJub25lIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzAgNDQpIj4KICAgIDwhLS0gdHJ1Y2sgYm9keSAtLT4KICAgIDxyZWN0IHg9IjYiIHk9IjQwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9Ijc0IiByeD0iMTIiIGZpbGw9IiMzMzU4NUIiLz4KICAgIDxyZWN0IHg9IjE4NiIgeT0iNjAiIHdpZHRoPSI3NiIgaGVpZ2h0PSI1NCIgcng9IjEwIiBmaWxsPSIjNDk3NzdBIi8+CiAgICA8cmVjdCB4PSIxOTYiIHk9IjcwIiB3aWR0aD0iNDAiIGhlaWdodD0iMjgiIHJ4PSI1IiBmaWxsPSIjRjZGNEVDIi8+CiAgICA8IS0tIGF3bmluZyAtLT4KICAgIDxwYXRoIGQ9Ik0wIDQwIEgxOTYgbC0xMiAxOCBIMTIgWiIgZmlsbD0iI0JGNkUzQSIvPgogICAgPGcgZmlsbD0iI2E4NWEyYyI+CiAgICAgIDxyZWN0IHg9IjE4IiB5PSI0MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjE4Ii8+CiAgICAgIDxyZWN0IHg9IjYyIiB5PSI0MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjE4Ii8+CiAgICAgIDxyZWN0IHg9IjEwNiIgeT0iNDAiIHdpZHRoPSIyMiIgaGVpZ2h0PSIxOCIvPgogICAgICA8cmVjdCB4PSIxNTAiIHk9IjQwIiB3aWR0aD0iMjIiIGhlaWdodD0iMTgiLz4KICAgIDwvZz4KICAgIDwhLS0gd2hlZWxzIC0tPgogICAgPGNpcmNsZSBjeD0iNjAiIGN5PSIxMjAiIHI9IjIwIiBmaWxsPSIjMjYzMTJCIi8+CiAgICA8Y2lyY2xlIGN4PSI2MCIgY3k9IjEyMCIgcj0iOSIgZmlsbD0iI0Y2RjRFQyIvPgogICAgPGNpcmNsZSBjeD0iMjE0IiBjeT0iMTIwIiByPSIyMCIgZmlsbD0iIzI2MzEyQiIvPgogICAgPGNpcmNsZSBjeD0iMjE0IiBjeT0iMTIwIiByPSI5IiBmaWxsPSIjRjZGNEVDIi8+CiAgICA8IS0tIGZvcmsgJiBrbmlmZSBlbWJsZW0gLS0+CiAgICA8ZyBzdHJva2U9IiNGNkY0RUMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIj4KICAgICAgPHBhdGggZD0iTTg0IDYwIHYzNCBNOTIgNjAgdjM0IE0xMDAgNjAgdjM0Ii8+CiAgICAgIDxwYXRoIGQ9Ik05NiA3OCB2MTYiLz4KICAgIDwvZz4KICA8L2c+CiAgPHRleHQgeD0iMjIwIiB5PSIxODYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI3MDAiIGxldHRlci1zcGFjaW5nPSIzIiBmaWxsPSIjMjYzMTJCIj5GT09EJiMxNjA7VFJVQ0s8L3RleHQ+Cjwvc3ZnPgo=",
-    "logoAlt": "פוד טראק",
+    "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0NDAgMjIwJyB3aWR0aD0nNDQwJyBoZWlnaHQ9JzIyMCcgcm9sZT0naW1nJyBhcmlhLWxhYmVsPSdwbGFjZWhvbGRlciBsb2dvJz4KICA8cmVjdCB3aWR0aD0nNDQwJyBoZWlnaHQ9JzIyMCcgZmlsbD0nbm9uZScvPgogIDxyZWN0IHg9JzYwJyB5PSc0MCcgd2lkdGg9JzMyMCcgaGVpZ2h0PScxNDAnIHJ4PScxNicgZmlsbD0nbm9uZScgc3Ryb2tlPScjN0E3QTg1JyBzdHJva2Utd2lkdGg9JzQnIHN0cm9rZS1kYXNoYXJyYXk9JzEyIDEwJy8+CiAgPHRleHQgeD0nMjIwJyB5PScxMTgnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBc3Npc3RhbnQsIEFyaWFsLCBzYW5zLXNlcmlmJyBmb250LXNpemU9JzI2JyBmb250LXdlaWdodD0nNzAwJyBmaWxsPScjNTQ1NDVFJz7XlNec15XXkteVINep15zXmjwvdGV4dD4KICA8dGV4dCB4PScyMjAnIHk9JzE1MCcgdGV4dC1hbmNob3I9J21pZGRsZScgZm9udC1mYW1pbHk9J0Fzc2lzdGFudCwgQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nMTUnIGZpbGw9JyM4QThBOTMnPteU16LXnNeVINeb15DXnyDXkdee16LXqNeb16og15TXoNeZ15TXldecPC90ZXh0Pgo8L3N2Zz4=",
+    "logoAlt": "שם העסק",
     "links": [
       {
         "label": "התפריט",
@@ -292,7 +288,7 @@
         "external": true
       }
     ],
-    "copyright": "פוד טראק. כל הזכויות שמורות.",
-    "regions": "ערכו אותי במערכת הניהול"
+    "copyright": "שם העסק. כל הזכויות שמורות.",
+    "regions": "ערכו את הפוטר במערכת הניהול"
   }
 }
