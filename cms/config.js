@@ -26,8 +26,8 @@ export const templateUrl       = () => new URL("../template.html",     location.
 // The anon/public key is safe to ship in client code by design — Supabase's
 // Row Level Security policies (not key secrecy) are what keep each user's
 // `sites` row private. Never put the service_role key here.
-export const SUPABASE_URL      = "";
-export const SUPABASE_ANON_KEY = "";
+export const SUPABASE_URL      = "https://jcoxptaaidttktaosjwj.supabase.co";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjb3hwdGFhaWR0dGt0YW9zandqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMTQ3NjgsImV4cCI6MjEwMDg5MDc2OH0.pPOu_4ogk8sY88LM0N_fX4ctNkKV1mTdCAnmu_ahPec";
 
 // ── GitHub publish → Vercel auto-deploy ──────────────────────────────────────
 // "פרסם לאינטרנט" calls /api/publish (a Vercel serverless function).
