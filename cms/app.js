@@ -1099,8 +1099,8 @@ function downscale(file, maxDim) {
 // resolves correctly if the preview's <base href> points at THAT account's
 // own hosted site, not at the CMS's own origin.
 const ASSET_BASE_MAP = {
-  // alonatruck@gmail.com — truck bamoshava (GitHub Pages)
-  "b07e58c7-7bce-4b4b-a585-c590051ff9fa": "https://nimi5334.github.io/truck-bamoshava-website/",
+  // alonatruck@gmail.com — truck bamoshava (Vercel, deploying main/truck-bamoshava/)
+  "b07e58c7-7bce-4b4b-a585-c590051ff9fa": "https://truck-bamoshava-website.vercel.app/",
 };
 
 let previewOn = window.innerWidth > 1100;

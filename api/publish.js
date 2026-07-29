@@ -21,13 +21,15 @@
  * Not in this map → falls back to the shared default repo above.
  */
 const USER_REPO_MAP = {
-  // alonatruck@gmail.com — truck bamoshava (own repo + GitHub Pages)
+  // alonatruck@gmail.com — truck bamoshava. Repo's "main" is a shared
+  // mono-repo; the site itself lives under the truck-bamoshava/ subfolder
+  // there (this matches the Vercel project's own Root Directory setting).
   "b07e58c7-7bce-4b4b-a585-c590051ff9fa": {
     owner: "Nimi5334",
     repo: "truck-bamoshava-website",
-    branch: "gh-pages",
-    file: "index.html",
-    siteJsonFile: "content/site.json",
+    branch: "main",
+    file: "truck-bamoshava/index.html",
+    siteJsonFile: "truck-bamoshava/content/site.json",
   },
 };
 
