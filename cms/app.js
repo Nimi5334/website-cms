@@ -1006,7 +1006,8 @@ async function publishToGitHub() {
     persistNow(state.site);
     const html = await buildHtml();
     const res = await fetch("/api/publish", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ html }),
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ html, userId: state.user.id, siteJson: state.site }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
