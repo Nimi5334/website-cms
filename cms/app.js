@@ -1092,6 +1092,17 @@ function downscale(file, maxDim) {
 }
 
 /* ---------------- preview ---------------- */
+// Manual per-account asset base (until publish-target provisioning is
+// automated, see api/publish.js's USER_REPO_MAP). Some accounts' real media
+// files live in a different deployment than the CMS itself — e.g. an
+// imported site.json with relative paths like "assets/logo.png" only
+// resolves correctly if the preview's <base href> points at THAT account's
+// own hosted site, not at the CMS's own origin.
+const ASSET_BASE_MAP = {
+  // alonatruck@gmail.com — truck bamoshava (GitHub Pages)
+  "b07e58c7-7bce-4b4b-a585-c590051ff9fa": "https://nimi5334.github.io/truck-bamoshava-website/",
+};
+
 let previewOn = window.innerWidth > 1100;
 async function togglePreview() {
   previewOn = !previewOn;
@@ -1106,8 +1117,12 @@ async function refreshPreview() {
     if (!tplRes.ok) throw new Error("template " + tplRes.status);
     const template = await tplRes.text();
     const html = render(state.site, template);
-    const base = new URL(templateUrl());
-    $previewFrame.srcdoc = html.replace("<head>", `<head><base href="${base.origin}${base.pathname.replace(/[^/]+$/, "")}">`);
+    const mapped = state.user && ASSET_BASE_MAP[state.user.id];
+    const assetBase = mapped || (() => {
+      const base = new URL(templateUrl());
+      return base.origin + base.pathname.replace(/[^/]+$/, "");
+    })();
+    $previewFrame.srcdoc = html.replace("<head>", `<head><base href="${assetBase}">`);
   } catch (err) {
     $previewFrame.srcdoc = `<!doctype html><meta charset=utf-8><body style="font-family:sans-serif;padding:24px;color:#666">תצוגה מקדימה נכשלה: ${err.message}</body>`;
   }
