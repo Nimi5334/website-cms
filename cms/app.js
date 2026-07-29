@@ -5,11 +5,14 @@
  * Sections are a dense table; clicking a row opens a side drawer with that section's editor.
  * Everything autosaves to localStorage. Publish pushes a self-contained index.html to GitHub.
  */
-import { SITE_ID, STORAGE_KEY, starterContentUrl, templateUrl, EDIT_PASSWORD } from "./config.js";
+import { SITE_ID, STORAGE_KEY, starterContentUrl, templateUrl } from "./config.js";
 import {
   FONT_CHOICES, COLOR_LABELS, TAG_OPTIONS, SOCIAL_OPTIONS,
   SECTION_LABELS, ADDABLE_SECTIONS, DAY_NAMES, LABELS as L,
 } from "./schema.js";
+import {
+  supabaseReady, getSession, onAuthChange, signUp, signIn, signOut, fetchSite, upsertSite,
+} from "./supabase.js";
 
 /* ---------------- DOM helper ---------------- */
 function el(tag, attrs = {}, ...kids) {
@@ -63,17 +66,35 @@ const state = {
   site: null,
   dirty: false,
   busy: false,
-  unlocked: !EDIT_PASSWORD,
+  user: null, // { id, email } once signed in via Supabase
   view: "sections",
 };
 
-/* ---------------- persistence ---------------- */
-function loadDraft() {
-  const s = localStorage.getItem(STORAGE_KEY);
+/* ---------------- persistence ----------------
+ * The Supabase `sites` row (keyed by user_id) is the source of truth.
+ * localStorage is only a local cache — namespaced per signed-in user so
+ * two different accounts sharing one browser never collide. */
+const localKey    = (userId) => `${STORAGE_KEY}:${userId}`;
+const versionsKey = (userId) => localKey(userId) + ":versions";
+// Pre-accounts key: what a lone-editor browser used before signup existed.
+const legacyKey = () => STORAGE_KEY;
+
+function loadDraft(userId) {
+  const s = localStorage.getItem(localKey(userId));
   if (s) { try { return JSON.parse(s); } catch {} }
   return null;
 }
-function saveDraft(site) { localStorage.setItem(STORAGE_KEY, JSON.stringify(site)); }
+function saveDraft(userId, site) { localStorage.setItem(localKey(userId), JSON.stringify(site)); }
+/** Local cache write (instant) + fire-and-forget sync to Supabase (source of truth). */
+function persistNow(site) {
+  try { saveDraft(state.user.id, site); } catch {}
+  upsertSite(state.user.id, site).catch((err) => console.error("upsertSite error:", err));
+}
+function loadLegacyDraft() {
+  const s = localStorage.getItem(legacyKey());
+  if (s) { try { return JSON.parse(s); } catch {} }
+  return null;
+}
 async function loadStarter() {
   const res = await fetch(starterContentUrl() + "?bust=" + Date.now());
   if (!res.ok) throw new Error("starter " + res.status);
@@ -86,31 +107,109 @@ function setStatus(msg, kind = "") {
   if ($status) { $status.textContent = msg || ""; $status.className = "chip " + kind; }
 }
 
-/* ---------------- soft lock ---------------- */
-function renderLogin(errMsg) {
-  const pw = el("input", { type: "password", autofocus: true });
+/* ---------------- auth screen ---------------- */
+let authMode = "signin"; // "signin" | "signup"
+function renderAuth(errMsg) {
+  if (!supabaseReady) {
+    $app.replaceChildren(el("div", { class: "login-wrap" },
+      el("div", { class: "login-card" },
+        el("h1", {}, "המערכת לא מוגדרת"),
+        el("p", {}, "חסרים פרטי חיבור ל-Supabase (SUPABASE_URL / SUPABASE_ANON_KEY) בקובץ cms/config.js."))));
+    return;
+  }
+
+  const email = el("input", { type: "email", autofocus: true, autocomplete: "email" });
+  const pw = el("input", { type: "password", autocomplete: authMode === "signup" ? "new-password" : "current-password" });
   const msg = el("p", { class: "chip err", style: "margin-top:8px" }, errMsg || "");
+
+  const signinTab = el("button", { type: "button", class: authMode === "signin" ? "on" : "" }, L.signin);
+  const signupTab = el("button", { type: "button", class: authMode === "signup" ? "on" : "" }, L.signup);
+  signinTab.onclick = () => { authMode = "signin"; renderAuth(); };
+  signupTab.onclick = () => { authMode = "signup"; renderAuth(); };
+  const tabs = el("div", { class: "auth-tabs" }, signinTab, signupTab);
+
+  const submitBtn = el("button", { class: "btn btn-primary", style: "width:100%" },
+    authMode === "signup" ? L.signup : L.signin);
+
   const form = el("form", {
-    onsubmit: (e) => {
+    onsubmit: async (e) => {
       e.preventDefault();
-      if (pw.value === EDIT_PASSWORD) { state.unlocked = true; boot(); }
-      else { msg.textContent = "סיסמה שגויה."; }
+      msg.textContent = "";
+      submitBtn.disabled = true;
+      try {
+        const fn = authMode === "signup" ? signUp : signIn;
+        const { data, error } = await fn(email.value.trim(), pw.value);
+        if (error) throw error;
+        if (authMode === "signup" && !data.session) {
+          // Shouldn't happen with "Confirm email" off, but handle gracefully.
+          msg.className = "chip warn";
+          msg.textContent = "נרשמתם! בדקו את תיבת המייל לאישור ההרשמה, ואז התחברו.";
+          submitBtn.disabled = false;
+          return;
+        }
+        await boot();
+      } catch (err) {
+        msg.className = "chip err";
+        msg.textContent = err.message || "משהו השתבש. נסו שוב.";
+        submitBtn.disabled = false;
+      }
     },
   },
+    tabs,
+    el("label", { style: "font-size:.78rem;color:var(--ink-2)" }, L.email),
+    email,
     el("label", { style: "font-size:.78rem;color:var(--ink-2)" }, L.password),
     pw,
-    el("button", { class: "btn btn-primary", style: "width:100%" }, L.signin),
+    submitBtn,
     msg);
+
   $app.replaceChildren(el("div", { class: "login-wrap" },
-    el("div", { class: "login-card" }, el("h1", {}, L.open_title), el("p", {}, L.open_sub), form)));
-  pw.focus();
+    el("div", { class: "login-card" },
+      el("h1", {}, authMode === "signup" ? L.signup : L.open_title),
+      el("p", {}, authMode === "signup" ? L.signup_sub : L.open_sub),
+      form)));
+  email.focus();
 }
 
 /* ---------------- boot ---------------- */
+let authWatched = false;
 async function boot() {
-  if (!state.unlocked) { renderLogin(); return; }
+  if (!supabaseReady) { renderAuth(); return; }
+  if (!authWatched) {
+    authWatched = true;
+    onAuthChange((session) => { if (!session && state.user) { state.user = null; renderAuth(); } });
+  }
+
+  const session = await getSession();
+  if (!session) { state.user = null; renderAuth(); return; }
+  state.user = session.user;
+
   try {
-    state.site = loadDraft() || await loadStarter();
+    let remote = null;
+    try { remote = await fetchSite(state.user.id); }
+    catch (err) {
+      console.error("fetchSite error:", err);
+      state.site = loadDraft(state.user.id) || await loadStarter();
+      state.dirty = false;
+      renderDeck();
+      setStatus("לא ניתן להתחבר לשרת · עובדים במצב לא מקוון", "warn");
+      return;
+    }
+
+    if (remote) {
+      state.site = remote;
+    } else {
+      // First login for this account: no row yet. Offer to import a local
+      // draft left over from before accounts existed, else seed the starter.
+      const legacy = loadLegacyDraft();
+      if (legacy && confirm("מצאנו טיוטה קודמת בדפדפן הזה. לייבא אותה לחשבון החדש?")) {
+        state.site = legacy;
+      } else {
+        state.site = await loadStarter();
+      }
+      await upsertSite(state.user.id, state.site);
+    }
+
     state.dirty = false;
     renderDeck();
   } catch (err) {
@@ -129,25 +228,34 @@ function markDirty() {
   state.dirty = true;
   setStatus("שומר…", "warn");
   clearTimeout(autosaveT);
-  autosaveT = setTimeout(() => {
-    try { saveDraft(state.site); state.dirty = false; setStatus("נשמר ✓", "ok"); }
-    catch (err) { setStatus("שמירה נכשלה", "err"); }
+  autosaveT = setTimeout(async () => {
+    try { saveDraft(state.user.id, state.site); } catch {}
+    try {
+      await upsertSite(state.user.id, state.site);
+      state.dirty = false;
+      setStatus("נשמר ✓", "ok");
+    } catch (err) {
+      console.error("upsertSite error:", err);
+      setStatus("נשמר מקומית · בעיה בסנכרון לענן", "warn");
+    }
   }, 700);
   clearTimeout(previewDebounce);
   previewDebounce = setTimeout(() => { refreshStats(); if (previewOn) refreshPreview(); }, 420);
 }
 
-/* ---------------- version history ---------------- */
-const VERSIONS_KEY = STORAGE_KEY + ":versions";
+/* ---------------- version history ----------------
+ * Stays local to this browser/account (a "recent undo" convenience) — not
+ * synced across devices. Namespaced per signed-in user. */
+function versionsKeyFor() { return versionsKey(state.user.id); }
 function loadVersions() {
-  try { return JSON.parse(localStorage.getItem(VERSIONS_KEY)) || []; } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(versionsKeyFor())) || []; } catch { return []; }
 }
 function pushVersion(label) {
   try {
     const v = loadVersions();
     v.unshift({ t: Date.now(), label, site: clone(state.site) });
     if (v.length > 12) v.length = 12;
-    localStorage.setItem(VERSIONS_KEY, JSON.stringify(v));
+    localStorage.setItem(versionsKeyFor(), JSON.stringify(v));
   } catch {}
 }
 function showVersions() {
@@ -166,7 +274,7 @@ function showVersions() {
         if (!confirm("לשחזר את הגרסה הזו? המצב הנוכחי יישמר גם הוא כגרסה.")) return;
         pushVersion("לפני שחזור");
         state.site = clone(v.site);
-        saveDraft(state.site);
+        persistNow(state.site);
         close(); renderDeck();
         setStatus("שוחזר ✓", "ok");
       } }, "שחזור")));
@@ -212,7 +320,11 @@ function renderDeck() {
     el("span", { class: "sp" }),
     $status,
     el("button", { class: "btn btn-sm", onclick: importFromFile, title: "טעינת אתר קיים" }, "ייבוא"),
-    el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"));
+    el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
+    el("button", {
+      class: "btn btn-sm", title: state.user?.email || "",
+      onclick: async () => { await signOut(); state.user = null; boot(); },
+    }, L.logout));
 
   /* stats */
   $statsEl = el("div", { class: "stats" });
@@ -429,11 +541,11 @@ function openSectionDrawer(s, redraw) {
   openDrawer({
     title: sectionName(s),
     body: el("div", {}, sectionEditor(s)),
-    onDone: () => { saveDraft(state.site); redraw(); refreshStats(); if (previewOn) refreshPreview(); setStatus("נשמר ✓", "ok"); },
+    onDone: () => { persistNow(state.site); redraw(); refreshStats(); if (previewOn) refreshPreview(); setStatus("נשמר ✓", "ok"); },
     onCancel: () => {
       Object.keys(s).forEach((k) => delete s[k]);
       Object.assign(s, before);
-      saveDraft(state.site); redraw(); refreshStats(); if (previewOn) refreshPreview();
+      persistNow(state.site); redraw(); refreshStats(); if (previewOn) refreshPreview();
       setStatus("השינויים בוטלו", "");
     },
   });
@@ -878,7 +990,7 @@ async function downloadFile() {
   state.busy = true;
   setStatus("מייצר קובץ…", "");
   try {
-    saveDraft(state.site);
+    persistNow(state.site);
     download((SITE_ID || "site") + "-index.html", await buildHtml(), "text/html");
     pushVersion("הורדת קובץ");
     setStatus("הקובץ ירד ✓", "ok");
@@ -891,7 +1003,7 @@ async function publishToGitHub() {
   state.busy = true;
   setStatus("מפרסם…", "");
   try {
-    saveDraft(state.site);
+    persistNow(state.site);
     const html = await buildHtml();
     const res = await fetch("/api/publish", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ html }),
@@ -924,7 +1036,7 @@ function importFromFile() {
         if (!site) throw new Error('הקובץ אינו מכיל נתוני CMS. ייבאו קובץ שיוצא מהמערכת.');
       }
       if (!site.sections) throw new Error("מבנה הקובץ שגוי — חסר שדה sections.");
-      state.site = site; saveDraft(site); state.dirty = false;
+      state.site = site; persistNow(site); state.dirty = false;
       renderDeck();
       setStatus("האתר נטען ✓", "ok");
     } catch (err) { setStatus("טעינה נכשלה: " + err.message, "err"); }
