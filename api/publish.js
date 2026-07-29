@@ -64,7 +64,10 @@ module.exports = async function handler(req, res) {
   async function putFile(path, rawContent) {
     const apiUrl = `https://api.github.com/repos/${target.owner}/${target.repo}/contents/${path}`;
     let sha;
-    const getRes = await fetch(apiUrl, { headers: ghHeaders });
+    // Must check the SAME branch we're about to write to — without ?ref=,
+    // GitHub looks at the repo's default branch, which may not be where
+    // this file lives (e.g. default is "main" but the site is on "gh-pages").
+    const getRes = await fetch(`${apiUrl}?ref=${encodeURIComponent(target.branch)}`, { headers: ghHeaders });
     if (getRes.ok) sha = (await getRes.json()).sha;
 
     const content = Buffer.from(rawContent, "utf-8").toString("base64");
