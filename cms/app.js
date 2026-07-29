@@ -328,7 +328,7 @@ function renderDeck() {
     $status,
     el("button", { class: "btn btn-sm", onclick: importFromFile, title: "טעינת אתר קיים" }, "ייבוא"),
     el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
-    el("button", { class: "btn btn-sm", onclick: undoLast, title: "ביטול השינוי האחרון (מחיקות/עריכות)" }, icon("undo"), " ביטול"),
+    el("button", { class: "btn btn-sm btn-icon", onclick: undoLast, title: "ביטול השינוי האחרון (מחיקות/עריכות)", "aria-label": "ביטול השינוי האחרון" }, icon("undo")),
     el("button", {
       class: "btn btn-sm btn-logout", title: state.user?.email || "",
       onclick: async () => { await signOut(); state.user = null; boot(); },
