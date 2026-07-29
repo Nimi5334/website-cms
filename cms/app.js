@@ -1,17 +1,9 @@
 /**
- * Truck Site Kit — CMS editor (vanilla JS, NO backend / NO API).
+ * Truck Site Kit — CMS "Flight Deck" (vanilla JS, no backend).
  *
- * Flow for the business owner:
- *   1. Open this page (optionally behind a soft local password).
- *   2. Edit everything — brand, colors, fonts, hero, story, menu, gallery, video,
- *      locations & hours, social, footer. Live preview on the side.
- *   3. Click "פרסום האתר" (Publish): the renderer runs in THIS browser and a
- *      finished, fully self-contained index.html downloads. Images and video are
- *      baked in as data-URIs; the content model is embedded so the editor can
- *      re-open the site later (Import).
- *
- * No content ever leaves the browser on its own. Drafts persist in localStorage.
- * The published index.html is the deliverable the seller hosts on any static host.
+ * Layout: icon rail (right) · stage (stat strip + content + action bar) · live viewport (left).
+ * Sections are a dense table; clicking a row opens a side drawer with that section's editor.
+ * Everything autosaves to localStorage. Publish pushes a self-contained index.html to GitHub.
  */
 import { SITE_ID, STORAGE_KEY, starterContentUrl, templateUrl, EDIT_PASSWORD } from "./config.js";
 import {
@@ -19,7 +11,7 @@ import {
   SECTION_LABELS, ADDABLE_SECTIONS, DAY_NAMES, LABELS as L,
 } from "./schema.js";
 
-/* ---------------- tiny DOM helper ---------------- */
+/* ---------------- DOM helper ---------------- */
 function el(tag, attrs = {}, ...kids) {
   const n = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -37,6 +29,34 @@ function el(tag, attrs = {}, ...kids) {
 }
 const $app = document.getElementById("app");
 const rid = (p) => p + "-" + Math.random().toString(36).slice(2, 7);
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+/* ---------------- icons (1.6 stroke, one family) ---------------- */
+const ICON = {
+  home:    "M3 9.5 10 4l7 5.5V16a1 1 0 0 1-1 1h-3v-5H7v5H4a1 1 0 0 1-1-1z",
+  palette: "M10 17a7 7 0 1 1 7-7c0 1.7-1.3 2-2.5 2H13a1.5 1.5 0 0 0-1 2.6A1.5 1.5 0 0 1 10 17zM6.5 8.5h.01M9.5 6h.01M13.5 7.5h.01",
+  menu:    "M3 5.5h14M3 10h14M3 14.5h9",
+  layers:  "m10 2.5 7.5 4-7.5 4-7.5-4zM2.5 11l7.5 4 7.5-4M2.5 14.5l7.5 4 7.5-4",
+  anchor:  "M10 6.5v11M10 6.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6zM3.5 12a6.5 6.5 0 0 0 13 0M3.5 12H6M16.5 12H14",
+  eye:     "M1.5 10S4.5 4.5 10 4.5 18.5 10 18.5 10 15.5 15.5 10 15.5 1.5 10 1.5 10z M10 12.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z",
+  clock:   "M10 17.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15zM10 5.8V10l2.8 1.7",
+  upload:  "M10 13V3.5M6.5 7 10 3.5 13.5 7M3.5 13v2.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V13",
+  search:  "M9 15A6 6 0 1 0 9 3a6 6 0 0 0 0 12zM17 17l-3.7-3.7",
+};
+function icon(name, cls = "") {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 20 20");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "1.6");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  if (cls) svg.setAttribute("class", cls);
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", ICON[name] || "");
+  svg.append(p);
+  return svg;
+}
 
 /* ---------------- state ---------------- */
 const state = {
@@ -44,38 +64,32 @@ const state = {
   dirty: false,
   busy: false,
   unlocked: !EDIT_PASSWORD,
-  activePanel: "general",
+  view: "sections",
 };
 
-/* ---------------- persistence (browser only) ---------------- */
+/* ---------------- persistence ---------------- */
 function loadDraft() {
   const s = localStorage.getItem(STORAGE_KEY);
   if (s) { try { return JSON.parse(s); } catch {} }
   return null;
 }
-function saveDraft(site) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(site));
-}
+function saveDraft(site) { localStorage.setItem(STORAGE_KEY, JSON.stringify(site)); }
 async function loadStarter() {
   const res = await fetch(starterContentUrl() + "?bust=" + Date.now());
   if (!res.ok) throw new Error("starter " + res.status);
   return res.json();
 }
 
-/* ---------------- status line ---------------- */
+/* ---------------- status chip ---------------- */
 let $status;
 function setStatus(msg, kind = "") {
-  if ($status) {
-    $status.textContent = msg || "";
-    $status.className = "status-msg " + kind;
-  }
+  if ($status) { $status.textContent = msg || ""; $status.className = "chip " + kind; }
 }
 
-/* ---------------- optional soft lock ---------------- */
+/* ---------------- soft lock ---------------- */
 function renderLogin(errMsg) {
-  const pw = el("input", { type: "password", id: "pw", autofocus: true });
-  const btn = el("button", { class: "btn btn-primary", style: "width:100%" }, L.signin);
-  const msg = el("p", { class: "status-msg err" }, errMsg || "");
+  const pw = el("input", { type: "password", autofocus: true });
+  const msg = el("p", { class: "chip err", style: "margin-top:8px" }, errMsg || "");
   const form = el("form", {
     onsubmit: (e) => {
       e.preventDefault();
@@ -83,150 +97,44 @@ function renderLogin(errMsg) {
       else { msg.textContent = "סיסמה שגויה."; }
     },
   },
-    el("label", { class: "muted", style: "font-size:.85rem" }, `${L.password} · ${SITE_ID}`),
-    pw, btn, msg
-  );
-  $app.replaceChildren(
-    el("div", { class: "login-wrap" },
-      el("div", { class: "card login-card" },
-        el("h1", {}, L.open_title),
-        el("p", {}, L.open_sub),
-        form
-      )
-    )
-  );
+    el("label", { style: "font-size:.78rem;color:var(--ink-2)" }, L.password),
+    pw,
+    el("button", { class: "btn btn-primary", style: "width:100%" }, L.signin),
+    msg);
+  $app.replaceChildren(el("div", { class: "login-wrap" },
+    el("div", { class: "login-card" }, el("h1", {}, L.open_title), el("p", {}, L.open_sub), form)));
   pw.focus();
 }
 
-/* ---------------- boot / load ---------------- */
+/* ---------------- boot ---------------- */
 async function boot() {
   if (!state.unlocked) { renderLogin(); return; }
   try {
     state.site = loadDraft() || await loadStarter();
     state.dirty = false;
-    renderEditor();
+    renderDeck();
   } catch (err) {
     console.error("Boot error:", err);
     $app.replaceChildren(el("div", { class: "login-wrap" },
-      el("div", { class: "card", style: "padding:24px" },
-        el("p", {}, "שגיאה בטעינת התוכן ההתחלתי: " + err.message),
-        el("p", { class: "muted", style: "font-size:.85rem" }, "ודאו שהקובץ starter/site.json קיים ושהעורך מוגש משרת (לא file://)."))));
+      el("div", { class: "login-card" },
+        el("p", {}, "שגיאה בטעינת התוכן: " + err.message),
+        el("p", { style: "color:var(--ink-3);font-size:.8rem;margin-top:8px" },
+          "ודאו שהקובץ starter/site.json קיים ושהעורך מוגש משרת (לא file://)."))));
   }
 }
 
-/* ---------------- nav config ---------------- */
-const NAV_PANELS = [
-  { key: "general",  label: L.general },
-  { key: "theme",    label: L.theme },
-  { key: "nav",      label: L.navigation },
-  { key: "sections", label: L.sections },
-  { key: "footer",   label: L.footer },
-];
-
-/* ---------------- editor shell ---------------- */
-let $previewFrame = null;
-let $sidebar = null;
-let $editorContent = null;
-
-function renderEditor() {
-  const site = state.site;
-  $status = el("div", { class: "status-msg" });
-
-  const topbar = el("div", { class: "topbar" },
-    el("span", { class: "title" }, L.app_title),
-    el("span", { class: "site-id" }, site.brand?.name || SITE_ID),
-    el("span", { class: "spacer" }),
-    $status,
-    el("button", { class: "btn btn-sm", onclick: importFromFile }, L.import),
-    el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
-    el("button", { class: "btn btn-sm", onclick: togglePreview }, L.preview),
-    EDIT_PASSWORD ? el("button", { class: "btn btn-sm", onclick: () => { state.unlocked = false; renderLogin(); } }, L.logout) : null
-  );
-
-  // Sidebar nav
-  $sidebar = el("nav", { class: "nav-sidebar" });
-  buildSidebarNav();
-
-  // Content area
-  $editorContent = el("div", { class: "editor" });
-  renderActivePanel();
-
-  const saveBtn = el("button", { class: "btn", onclick: save }, L.save);
-  const ghBtn   = el("button", { class: "btn btn-primary", onclick: publishToGitHub }, "פרסם לאינטרנט");
-  const dlBtn   = el("button", { class: "btn", onclick: downloadFile }, L.publish);
-  const note    = el("span", { class: "muted", style: "font-size:.82rem" },
-    "פרסם לאינטרנט ← Vercel מעדכן את האתר תוך שניות.");
-  const savebar = el("div", { class: "savebar" }, ghBtn, dlBtn, saveBtn, note);
-
-  const mainArea = el("div", { class: "main-area" }, $editorContent, savebar);
-
-  // Device toggle — the owner sees the site exactly as visitors will, phone included.
-  const devBar = el("div", { class: "device-bar" },
-    el("button", { class: "dev-btn active", onclick: (e) => setDevice(e.target, "desktop") }, "מחשב"),
-    el("button", { class: "dev-btn", onclick: (e) => setDevice(e.target, "mobile") }, "נייד"));
-  const preview = el("div", { class: "preview-pane" + (previewOn ? "" : " hide") },
-    devBar, el("div", { class: "frame-wrap" }, el("iframe", { title: "preview" })));
-  $previewFrame = preview.querySelector("iframe");
-
-  const shell = el("div", { class: "shell" + (previewOn ? " with-preview" : ""), id: "shell" }, $sidebar, mainArea, preview);
-  $app.replaceChildren(topbar, shell);
-  if (previewOn) refreshPreview();
-}
-
-function setDevice(btn, mode) {
-  const pane = document.querySelector(".preview-pane");
-  if (!pane) return;
-  pane.classList.toggle("mobile", mode === "mobile");
-  pane.querySelectorAll(".dev-btn").forEach((b) => b.classList.toggle("active", b === btn));
-}
-
-function buildSidebarNav() {
-  if (!$sidebar) return;
-  $sidebar.replaceChildren();
-  for (const p of NAV_PANELS) {
-    const isActive = state.activePanel === p.key;
-    const item = el("button", {
-      class: "nav-item" + (isActive ? " active" : ""),
-      onclick: () => {
-        state.activePanel = p.key;
-        buildSidebarNav();
-        renderActivePanel();
-      },
-    }, p.label);
-    $sidebar.append(item);
-  }
-}
-
-function renderActivePanel() {
-  if (!$editorContent) return;
-  const site = state.site;
-  $editorContent.replaceChildren();
-  switch (state.activePanel) {
-    case "general":  $editorContent.append(panelGeneral(site));  break;
-    case "theme":    $editorContent.append(panelTheme(site));    break;
-    case "nav":      $editorContent.append(panelNav(site));      break;
-    case "sections": $editorContent.append(panelSections(site)); break;
-    case "footer":   $editorContent.append(panelFooter(site));   break;
-  }
-}
-
-let previewDebounce;
-let autosaveT;
+/* ---------------- autosave + dirty ---------------- */
+let previewDebounce, autosaveT;
 function markDirty() {
   state.dirty = true;
   setStatus("שומר…", "warn");
-  // Autosave — the owner never loses work and never has to think about saving.
   clearTimeout(autosaveT);
   autosaveT = setTimeout(() => {
-    try {
-      saveDraft(state.site);
-      state.dirty = false;
-      setStatus("נשמר אוטומטית ✓", "ok");
-    } catch (err) {
-      setStatus("שמירה נכשלה: " + err.message, "err");
-    }
-  }, 800);
-  if (previewOn) { clearTimeout(previewDebounce); previewDebounce = setTimeout(refreshPreview, 450); }
+    try { saveDraft(state.site); state.dirty = false; setStatus("נשמר ✓", "ok"); }
+    catch (err) { setStatus("שמירה נכשלה", "err"); }
+  }, 700);
+  clearTimeout(previewDebounce);
+  previewDebounce = setTimeout(() => { refreshStats(); if (previewOn) refreshPreview(); }, 420);
 }
 
 /* ---------------- version history ---------------- */
@@ -237,61 +145,348 @@ function loadVersions() {
 function pushVersion(label) {
   try {
     const v = loadVersions();
-    v.unshift({ t: Date.now(), label, site: JSON.parse(JSON.stringify(state.site)) });
-    if (v.length > 12) v.length = 12; // keep the last 12 snapshots
+    v.unshift({ t: Date.now(), label, site: clone(state.site) });
+    if (v.length > 12) v.length = 12;
     localStorage.setItem(VERSIONS_KEY, JSON.stringify(v));
-  } catch {} // quota errors must never block publishing
+  } catch {}
 }
 function showVersions() {
   const versions = loadVersions();
-  const overlay = el("div", { class: "modal-overlay", onclick: (e) => { if (e.target === overlay) overlay.remove(); } });
-  const list = el("div", { class: "version-list" });
-  if (!versions.length) {
-    list.append(el("p", { class: "muted", style: "padding:14px;font-size:.85rem" },
-      "עדיין אין גרסאות שמורות. גרסה נשמרת אוטומטית בכל פרסום."));
-  }
-  versions.forEach((v, i) => {
+  const scrim = el("div", { class: "scrim", onclick: close });
+  const list = el("div", { class: "vlist" });
+  function close() { scrim.remove(); modal.remove(); }
+  if (!versions.length) list.append(el("div", { class: "empty" }, "אין עדיין גרסאות. גרסה נשמרת בכל פרסום."));
+  versions.forEach((v) => {
     const d = new Date(v.t);
-    const when = d.toLocaleDateString("he-IL") + " · " + d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
-    list.append(el("div", { class: "version-item" },
+    list.append(el("div", { class: "vitem" },
       el("div", {},
-        el("div", { style: "font-weight:600;font-size:.85rem" }, v.label || "גרסה"),
-        el("div", { class: "muted", style: "font-size:.74rem" }, when)),
-      el("button", {
-        class: "btn btn-sm", onclick: () => {
-          if (!confirm("לשחזר את הגרסה הזו? השינויים הנוכחיים יוחלפו.")) return;
-          pushVersion("לפני שחזור"); // safety net — current state becomes a version too
-          state.site = JSON.parse(JSON.stringify(v.site));
-          saveDraft(state.site);
-          overlay.remove();
-          renderEditor();
-          if (previewOn) refreshPreview();
-          setStatus("הגרסה שוחזרה ✓", "ok");
-        },
-      }, "שחזור")));
+        el("div", { class: "vt" }, v.label || "גרסה"),
+        el("div", { class: "vd" }, d.toLocaleDateString("he-IL") + " · " + d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }))),
+      el("button", { class: "btn btn-sm", onclick: () => {
+        if (!confirm("לשחזר את הגרסה הזו? המצב הנוכחי יישמר גם הוא כגרסה.")) return;
+        pushVersion("לפני שחזור");
+        state.site = clone(v.site);
+        saveDraft(state.site);
+        close(); renderDeck();
+        setStatus("שוחזר ✓", "ok");
+      } }, "שחזור")));
   });
-  overlay.append(el("div", { class: "modal card" },
-    el("div", { class: "modal-head" },
-      el("span", {}, "היסטוריית גרסאות"),
-      el("button", { class: "btn btn-sm", onclick: () => overlay.remove() }, "סגירה")),
-    list));
-  document.body.append(overlay);
+  const modal = el("div", { class: "modal" },
+    el("div", { class: "modal-head" }, el("span", {}, "היסטוריית גרסאות"),
+      el("button", { class: "btn btn-sm", onclick: close }, "סגירה")),
+    list);
+  document.body.append(scrim, modal);
+}
+
+/* ---------------- deck shell ---------------- */
+const VIEWS = [
+  { key: "sections", label: "אזורים",  icon: "layers"  },
+  { key: "general",  label: "כללי",    icon: "home"    },
+  { key: "theme",    label: "עיצוב",   icon: "palette" },
+  { key: "nav",      label: "תפריט",   icon: "menu"    },
+  { key: "footer",   label: "פוטר",    icon: "anchor"  },
+];
+
+let $previewFrame = null, $content = null, $statsEl = null, $rail = null;
+
+function renderDeck() {
+  const site = state.site;
+  $status = el("div", { class: "chip" });
+
+  /* rail */
+  $rail = el("aside", { class: "rail" });
+  buildRail();
+
+  /* topline */
+  const search = el("input", { type: "text", placeholder: "חיפוש מהיר… (שם מנה, סניף, כותרת)" });
+  const results = el("div", { class: "cmd-results hide" });
+  search.addEventListener("input", () => runSearch(search.value, results));
+  search.addEventListener("blur", () => setTimeout(() => results.classList.add("hide"), 180));
+  search.addEventListener("focus", () => { if (search.value) runSearch(search.value, results); });
+  const cmd = el("div", { class: "cmd" }, icon("search"), search, results);
+
+  const topline = el("div", { class: "topline" },
+    el("span", { class: "brandline" }, el("b", {}, "•"), " ", site.brand?.name || SITE_ID),
+    el("span", { class: "sp" }),
+    cmd,
+    el("span", { class: "sp" }),
+    $status,
+    el("button", { class: "btn btn-sm", onclick: importFromFile, title: "טעינת אתר קיים" }, "ייבוא"),
+    el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"));
+
+  /* stats */
+  $statsEl = el("div", { class: "stats" });
+
+  /* content */
+  $content = el("div", { class: "content" });
+
+  /* action bar */
+  const actionbar = el("div", { class: "actionbar" },
+    el("button", { class: "btn btn-primary", onclick: publishToGitHub }, "פרסום לאינטרנט"),
+    el("button", { class: "btn", onclick: downloadFile }, "הורדת קובץ"),
+    el("span", { class: "note" }, "השינויים נשמרים אוטומטית · פרסום מעדכן את האתר החי"));
+
+  const stage = el("main", { class: "stage" }, topline, $statsEl, $content, actionbar);
+
+  /* viewport */
+  const vpBar = el("div", { class: "vp-bar" },
+    el("span", { class: "lbl" }, "תצוגה חיה"),
+    el("button", { class: "dev-btn on", onclick: (e) => setDevice(e.currentTarget, false) }, "מחשב"),
+    el("button", { class: "dev-btn", onclick: (e) => setDevice(e.currentTarget, true) }, "נייד"));
+  const viewport = el("section", { class: "viewport" + (previewOn ? "" : " hide") },
+    vpBar, el("div", { class: "vp-frame" }, el("iframe", { title: "preview" })));
+  $previewFrame = viewport.querySelector("iframe");
+
+  $app.replaceChildren(el("div", { class: "deck" }, $rail, stage, viewport));
+  renderView();
+  refreshStats();
+  if (previewOn) refreshPreview();
+}
+
+function buildRail() {
+  $rail.replaceChildren(el("div", { class: "rail-mark" }, "ניהול"));
+  for (const v of VIEWS) {
+    $rail.append(el("button", {
+      class: "rail-btn" + (state.view === v.key ? " on" : ""),
+      onclick: () => { state.view = v.key; buildRail(); renderView(); },
+    }, icon(v.icon), el("span", {}, v.label)));
+  }
+  $rail.append(el("div", { class: "rail-sep" }));
+  $rail.append(el("button", {
+    class: "rail-btn" + (previewOn ? " on" : ""),
+    onclick: togglePreview,
+  }, icon("eye"), el("span", {}, "תצוגה")));
+}
+
+function setDevice(btn, mobile) {
+  const vp = document.querySelector(".viewport");
+  if (!vp) return;
+  vp.classList.toggle("mob", mobile);
+  vp.querySelectorAll(".dev-btn").forEach((b) => b.classList.toggle("on", b === btn));
+}
+
+function renderView() {
+  if (!$content) return;
+  const site = state.site;
+  $content.replaceChildren();
+  switch (state.view) {
+    case "sections": $content.append(sectionsTable(site)); break;
+    case "general":  $content.append(el("div", { class: "pad" }, ...panelGeneral(site))); break;
+    case "theme":    $content.append(el("div", { class: "pad" }, ...panelTheme(site)));   break;
+    case "nav":      $content.append(el("div", { class: "pad" }, ...panelNav(site)));     break;
+    case "footer":   $content.append(el("div", { class: "pad" }, ...panelFooter(site)));  break;
+  }
+}
+
+/* ---------------- stat strip ---------------- */
+function countImages(o, seen = 0) {
+  if (typeof o === "string") return /^data:image/.test(o) ? seen + 1 : seen;
+  if (Array.isArray(o)) return o.reduce((n, v) => countImages(v, n), seen);
+  if (o && typeof o === "object") return Object.values(o).reduce((n, v) => countImages(v, n), seen);
+  return seen;
+}
+function sectionStatus(s) {
+  if (s.visible === false) return "off";
+  const d = s.data || {};
+  const empty =
+    (s.type === "hero"      && !d.headline) ||
+    (s.type === "richtext"  && !(d.paragraphs || []).filter(Boolean).length) ||
+    (s.type === "menu"      && !(d.categories || []).length) ||
+    (s.type === "gallery"   && !(d.images || []).length) ||
+    (s.type === "media"     && !d.poster && !d.video) ||
+    (s.type === "locations" && !(d.branches || []).length) ||
+    (s.type === "social"    && !(d.links || []).length);
+  return empty ? "warn" : "ok";
+}
+function sectionCount(s) {
+  const d = s.data || {};
+  switch (s.type) {
+    case "menu":      return (d.categories || []).reduce((n, c) => n + (c.groups || []).reduce((m, g) => m + (g.items || []).length, 0), 0);
+    case "gallery":   return (d.images || []).length;
+    case "locations": return (d.branches || []).length;
+    case "social":    return (d.links || []).length;
+    case "richtext":  return (d.paragraphs || []).length;
+    case "hero":      return (d.ctas || []).length;
+    default:          return 0;
+  }
+}
+function sectionName(s) {
+  const d = s.data || {};
+  return (d.heading || d.headline || SECTION_LABELS[s.type] || s.type).split("\n")[0];
+}
+
+function refreshStats() {
+  if (!$statsEl) return;
+  const secs = state.site.sections || [];
+  const needs = secs.filter((s) => sectionStatus(s) === "warn").length;
+  const imgs = countImages(state.site);
+
+  // Sparkline built from real content volume per section — not decoration.
+  const vals = secs.map(sectionCount);
+  const max = Math.max(1, ...vals);
+  const w = 108, h = 26;
+  const pts = vals.length > 1
+    ? vals.map((v, i) => `${(i / (vals.length - 1)) * w},${h - (v / max) * (h - 4) - 2}`).join(" ")
+    : `0,${h - 2} ${w},${h - 2}`;
+  const spark = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+    <polyline points="${pts}" stroke="#3D8BFF" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+
+  $statsEl.replaceChildren(
+    el("div", { class: "stat" }, el("span", { class: "k" }, "אזורי תוכן"), el("span", { class: "v blue" }, String(secs.length))),
+    el("div", { class: "stat" }, el("span", { class: "k" }, "תמונות"), el("span", { class: "v" }, String(imgs))),
+    el("div", { class: "stat" }, el("span", { class: "k" }, "דורש השלמה"), el("span", { class: "v" + (needs ? " amber" : "") }, String(needs))),
+    el("div", { class: "spark", html: spark }));
+}
+
+/* ---------------- sections table ---------------- */
+function sectionsTable(site) {
+  site.sections = site.sections || [];
+  const wrap = el("div", {});
+  const table = el("div", { class: "dtable" });
+
+  function draw() {
+    table.replaceChildren();
+    if (!site.sections.length) table.append(el("div", { class: "empty" }, "אין עדיין אזורי תוכן. הוסיפו אזור למטה."));
+    site.sections.forEach((s, i) => {
+      const st = sectionStatus(s);
+      const n = sectionCount(s);
+      const row = el("div", {
+        class: "drow st-" + st,
+        onclick: (e) => { if (!e.target.closest(".dots")) openSectionDrawer(s, draw); },
+      },
+        el("span", { class: "nm" }, sectionName(s)),
+        el("span", { class: "tag" }, SECTION_LABELS[s.type] || s.type),
+        el("span", { class: "num" }, n ? String(n) : "—"),
+        el("button", { class: "dots", onclick: (e) => { e.stopPropagation(); rowMenu(e.currentTarget, s, i, draw); } }, "⋯"));
+      table.append(row);
+    });
+  }
+  draw();
+
+  const sel = el("select", {});
+  ADDABLE_SECTIONS.forEach((t) => sel.append(el("option", { value: t }, SECTION_LABELS[t] || t)));
+  const adder = el("div", { class: "pad" },
+    el("div", { class: "row", style: "align-items:center" },
+      el("div", { class: "field", style: "margin:0" }, sel),
+      el("button", { class: "btn btn-primary", style: "flex:0 0 auto", onclick: () => {
+        const s = defaultSection(sel.value);
+        site.sections.push(s); draw(); markDirty(); openSectionDrawer(s, draw);
+      } }, "הוספת אזור")));
+
+  wrap.append(el("div", { class: "sec-title" }, "אזורי התוכן של האתר — לחצו על שורה לעריכה"), table, adder);
+  return wrap;
+}
+
+function rowMenu(anchor, s, i, redraw) {
+  document.querySelector(".rowmenu")?.remove();
+  const r = anchor.getBoundingClientRect();
+  const sections = state.site.sections;
+  const menu = el("div", { class: "rowmenu", style: `top:${r.bottom + 4}px; left:${r.left}px` },
+    el("button", { onclick: () => { s.visible = s.visible === false; close(); redraw(); markDirty(); } },
+      s.visible === false ? "הצגה באתר" : "הסתרה מהאתר"),
+    el("button", { disabled: i === 0, onclick: () => { move(sections, i, -1); close(); redraw(); markDirty(); } }, "העלאה למעלה"),
+    el("button", { disabled: i === sections.length - 1, onclick: () => { move(sections, i, 1); close(); redraw(); markDirty(); } }, "הורדה למטה"),
+    el("button", { onclick: () => { const c = clone(s); c.id = rid(s.type); sections.splice(i + 1, 0, c); close(); redraw(); markDirty(); } }, "שכפול"),
+    el("button", { class: "danger", onclick: () => { if (confirm("למחוק את האזור?")) { sections.splice(i, 1); close(); redraw(); markDirty(); } } }, "מחיקה"));
+  function close() { menu.remove(); document.removeEventListener("click", onDoc, true); }
+  function onDoc(e) { if (!menu.contains(e.target)) close(); }
+  document.body.append(menu);
+  setTimeout(() => document.addEventListener("click", onDoc, true), 0);
+}
+
+/* ---------------- drawer ---------------- */
+function openDrawer({ title, body, onCancel, onDone }) {
+  const scrim = el("div", { class: "scrim", onclick: () => cancel() });
+  const pill = el("span", { class: "chip", style: "display:none" }, "שינויים שלא נשמרו");
+
+  // While the drawer is open, dirty marks light the amber pill.
+  const prevMark = window.__cmsMark;
+  window.__cmsMark = () => { pill.className = "chip warn"; pill.style.display = ""; };
+
+  const drawer = el("aside", { class: "drawer" },
+    el("div", { class: "dw-head" }, el("h2", {}, title), pill),
+    el("div", { class: "dw-body" }, body),
+    el("div", { class: "dw-foot" },
+      el("button", { class: "btn btn-primary", onclick: () => done() }, "שמירה"),
+      el("button", { class: "btn btn-ghost", onclick: () => cancel() }, "ביטול")));
+
+  function teardown() {
+    window.__cmsMark = prevMark;
+    scrim.remove(); drawer.remove();
+    document.removeEventListener("keydown", onKey);
+  }
+  function done()   { teardown(); onDone && onDone(); }
+  function cancel() { teardown(); onCancel && onCancel(); }
+  function onKey(e) { if (e.key === "Escape") cancel(); }
+
+  document.addEventListener("keydown", onKey);
+  document.body.append(scrim, drawer);
+}
+
+function openSectionDrawer(s, redraw) {
+  const before = clone(s);
+  openDrawer({
+    title: sectionName(s),
+    body: el("div", {}, sectionEditor(s)),
+    onDone: () => { saveDraft(state.site); redraw(); refreshStats(); if (previewOn) refreshPreview(); setStatus("נשמר ✓", "ok"); },
+    onCancel: () => {
+      Object.keys(s).forEach((k) => delete s[k]);
+      Object.assign(s, before);
+      saveDraft(state.site); redraw(); refreshStats(); if (previewOn) refreshPreview();
+      setStatus("השינויים בוטלו", "");
+    },
+  });
+}
+
+/* ---------------- quick search ---------------- */
+function collectIndex() {
+  const out = [];
+  const site = state.site;
+  (site.sections || []).forEach((s) => {
+    const d = s.data || {};
+    const push = (label, ctx) => out.push({ label, ctx, section: s });
+    push(sectionName(s), SECTION_LABELS[s.type] || s.type);
+    (d.categories || []).forEach((c) => {
+      push(c.title || "קטגוריה", "קטגוריה בתפריט");
+      (c.groups || []).forEach((g) => (g.items || []).forEach((it) => push(it.name || "מנה", "מנה · " + (c.title || ""))));
+    });
+    (d.branches || []).forEach((b) => push(b.name || "סניף", "סניף"));
+    (d.links || []).forEach((l) => push(l.label || l.network || "קישור", "רשת חברתית"));
+    (d.images || []).forEach((im, i) => push(im.alt || `תמונה ${i + 1}`, "גלריה"));
+  });
+  return out;
+}
+function runSearch(q, box) {
+  q = (q || "").trim();
+  if (q.length < 2) { box.classList.add("hide"); return; }
+  const hits = collectIndex().filter((h) => h.label.includes(q)).slice(0, 8);
+  box.replaceChildren();
+  if (!hits.length) { box.append(el("div", { class: "empty", style: "padding:16px" }, "לא נמצאו תוצאות")); }
+  hits.forEach((h) => box.append(el("button", {
+    class: "cmd-hit",
+    onclick: () => {
+      box.classList.add("hide");
+      state.view = "sections"; buildRail(); renderView();
+      openSectionDrawer(h.section, () => renderView());
+    },
+  }, el("span", {}, h.label), el("em", {}, h.ctx))));
+  box.classList.remove("hide");
 }
 
 /* ---------------- field builders ---------------- */
+function bump() { markDirty(); if (window.__cmsMark) window.__cmsMark(); }
+
 function textField(obj, key, label, opts = {}) {
   const id = "f_" + Math.random().toString(36).slice(2);
   const input = opts.area ? el("textarea", { id, rows: opts.rows || 3 }) : el("input", { type: "text", id });
   input.value = obj[key] ?? "";
   if (opts.placeholder) input.setAttribute("placeholder", opts.placeholder);
-  input.addEventListener("input", () => { obj[key] = input.value; markDirty(); if (opts.onInput) opts.onInput(); });
-  return el("div", { class: "field" },
-    el("label", { for: id }, label),
-    input,
-    opts.hint ? el("div", { class: "hint" }, opts.hint) : null
-  );
+  input.addEventListener("input", () => { obj[key] = input.value; bump(); if (opts.onInput) opts.onInput(); });
+  return el("div", { class: "field" + (opts.mono ? " mono-field" : "") },
+    el("label", { for: id }, label), input,
+    opts.hint ? el("div", { class: "hint" }, opts.hint) : null);
 }
-
 function selectField(obj, key, label, options) {
   const sel = el("select", {});
   for (const o of options) {
@@ -299,84 +494,69 @@ function selectField(obj, key, label, options) {
     if (obj[key] === o.value) opt.selected = true;
     sel.append(opt);
   }
-  sel.addEventListener("change", () => { obj[key] = sel.value; markDirty(); });
+  sel.addEventListener("change", () => { obj[key] = sel.value; bump(); });
   return el("div", { class: "field" }, el("label", {}, label), sel);
 }
-
 function colorField(obj, key, label) {
   const input = el("input", { type: "color", value: toHex6(obj[key] || "#ffffff") });
-  input.style.cssText = "width:46px;height:34px;border:none;background:none;padding:0;border-radius:8px;cursor:pointer";
-  input.addEventListener("input", () => { obj[key] = input.value; markDirty(); });
+  input.style.cssText = "width:40px;height:32px;border:none;background:none;padding:0;border-radius:6px;cursor:pointer";
+  input.addEventListener("input", () => { obj[key] = input.value; bump(); });
   return el("div", { class: "field" }, el("label", {}, label), input);
 }
-
 function numField(obj, key, label) {
-  const input = el("input", { type: "number", step: "any", value: obj[key] ?? "" });
-  input.style.cssText = "width:100%;background:var(--surface-2);border:1.5px solid var(--border);color:var(--ink);border-radius:8px;padding:9px 11px";
-  input.addEventListener("input", () => { obj[key] = input.value === "" ? null : parseFloat(input.value); markDirty(); });
-  return el("div", { class: "field" }, el("label", {}, label), input);
+  const input = el("input", { type: "text", value: obj[key] ?? "" });
+  input.addEventListener("input", () => {
+    const v = input.value.trim();
+    obj[key] = v === "" ? null : parseFloat(v);
+    bump();
+  });
+  return el("div", { class: "field mono-field" }, el("label", {}, label), input);
 }
-
 function checkbox(obj, key, defaultTrue = false) {
   const cb = el("input", { type: "checkbox" });
   cb.checked = obj[key] == null ? defaultTrue : !!obj[key];
-  cb.addEventListener("change", () => { obj[key] = cb.checked; markDirty(); });
+  cb.addEventListener("change", () => { obj[key] = cb.checked; bump(); });
   return cb;
 }
-
 function imageField(obj, key, label, hint) {
   const thumb = el("img", { class: "thumb", alt: "" });
   const setThumb = () => { thumb.src = obj[key] ? resolveAssetForPreview(obj[key]) : ""; };
   setThumb();
   const file = el("input", { type: "file", accept: "image/*", style: "display:none" });
-  const upBtn = el("button", { class: "btn btn-sm", type: "button", onclick: () => file.click() }, "העלאת תמונה");
-  const pathInput = el("input", { type: "text", value: obj[key] && !isInline(obj[key]) ? obj[key] : (obj[key] ? "(תמונה הוטמעה)" : "") });
-  pathInput.style.cssText = "flex:1";
-  pathInput.addEventListener("input", () => { obj[key] = pathInput.value; markDirty(); setThumb(); });
+  const upBtn = el("button", { class: "btn btn-sm", type: "button", onclick: () => file.click() }, "העלאה");
+  const clr = el("button", { class: "btn btn-sm btn-danger", type: "button", title: "הסרה",
+    onclick: () => { obj[key] = ""; setThumb(); bump(); } }, "✕");
   file.addEventListener("change", async () => {
     if (!file.files[0]) return;
     upBtn.disabled = true; upBtn.textContent = "מעלה…";
     try {
-      const rel = await uploadImage(file.files[0]);
-      obj[key] = rel; pathInput.value = "(תמונה הוטמעה)"; setThumb(); markDirty();
-      setStatus("התמונה נטענה ✓", "ok");
-    } catch (err) {
-      setStatus("העלאת תמונה נכשלה: " + err.message, "err");
-    } finally { upBtn.disabled = false; upBtn.textContent = "העלאת תמונה"; }
+      obj[key] = await uploadImage(file.files[0]);
+      setThumb(); bump(); setStatus("תמונה נטענה ✓", "ok");
+    } catch (err) { setStatus("העלאה נכשלה", "err"); }
+    finally { upBtn.disabled = false; upBtn.textContent = "העלאה"; }
   });
   return el("div", { class: "field" },
     el("label", {}, label),
-    el("div", { class: "row", style: "align-items:center" }, thumb, pathInput, upBtn, file),
-    hint ? el("div", { class: "hint" }, hint) : null
-  );
+    el("div", { style: "display:flex;gap:8px;align-items:center" }, thumb, upBtn, obj[key] ? clr : null, file),
+    hint ? el("div", { class: "hint" }, hint) : null);
 }
-
 function videoField(obj, key, label) {
   const file = el("input", { type: "file", accept: "video/*", style: "display:none" });
   const upBtn = el("button", { class: "btn btn-sm", type: "button", onclick: () => file.click() }, "העלאת וידאו");
-  const pathInput = el("input", { type: "text", value: obj[key] && !isInline(obj[key]) ? obj[key] : (obj[key] ? "(וידאו הוטמע)" : "") });
-  pathInput.style.cssText = "flex:1";
-  pathInput.addEventListener("input", () => { obj[key] = pathInput.value; markDirty(); });
-  const note = el("div", { class: "hint" }, "");
+  const st = el("div", { class: "hint" }, obj[key] ? "וידאו הוטמע ✓" : "אין וידאו");
   file.addEventListener("change", async () => {
-    if (!file.files[0]) return;
     const f = file.files[0];
+    if (!f) return;
     upBtn.disabled = true; upBtn.textContent = "טוען…";
     try {
-      if (f.size > 8 * 1024 * 1024)
-        note.textContent = "שימו לב: וידאו של " + Math.round(f.size / 1048576) + "MB יגדיל מאוד את קובץ האתר. מומלץ עד ~8MB.";
       obj[key] = await fileToDataURL(f);
-      pathInput.value = "(וידאו הוטמע)"; markDirty();
-      setStatus("הוידאו נטען ✓", "ok");
-    } catch (err) {
-      setStatus("טעינת וידאו נכשלה: " + err.message, "err");
-    } finally { upBtn.disabled = false; upBtn.textContent = "העלאת וידאו"; }
+      st.textContent = "וידאו הוטמע ✓" + (f.size > 8e6 ? ` (${Math.round(f.size / 1048576)}MB — כבד, מומלץ עד 8MB)` : "");
+      bump();
+    } catch { setStatus("טעינת וידאו נכשלה", "err"); }
+    finally { upBtn.disabled = false; upBtn.textContent = "העלאת וידאו"; }
   });
-  return el("div", { class: "field" },
-    el("label", {}, label),
-    el("div", { class: "row", style: "align-items:center" }, pathInput, upBtn, file),
-    note
-  );
+  return el("div", { class: "field" }, el("label", {}, label),
+    el("div", { style: "display:flex;gap:8px;align-items:center" }, upBtn, file), st);
 }
 
 /* ---------------- repeater ---------------- */
@@ -385,43 +565,40 @@ function repeater(arr, { title, make, render, addLabel }) {
   function draw() {
     wrap.replaceChildren();
     arr.forEach((item, i) => {
-      const head = el("div", { class: "item-head" },
-        el("span", { class: "grip" }, title ? title(item, i) : `#${i + 1}`),
-        el("div", { class: "icon-btns" },
-          el("button", { class: "btn btn-sm", type: "button", disabled: i === 0, onclick: () => { move(arr, i, -1); draw(); markDirty(); } }, L.up),
-          el("button", { class: "btn btn-sm", type: "button", disabled: i === arr.length - 1, onclick: () => { move(arr, i, 1); draw(); markDirty(); } }, L.down),
-          el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { arr.splice(i, 1); draw(); markDirty(); } }, "✕")
-        )
-      );
-      wrap.append(el("div", { class: "repeater-item" }, head, render(item, i)));
+      wrap.append(el("div", { class: "rep-item" },
+        el("div", { class: "rep-head" },
+          el("span", { class: "grip" }, title ? title(item, i) : `#${i + 1}`),
+          el("div", { class: "icon-btns" },
+            el("button", { class: "btn btn-sm", type: "button", disabled: i === 0, onclick: () => { move(arr, i, -1); draw(); bump(); } }, "↑"),
+            el("button", { class: "btn btn-sm", type: "button", disabled: i === arr.length - 1, onclick: () => { move(arr, i, 1); draw(); bump(); } }, "↓"),
+            el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { arr.splice(i, 1); draw(); bump(); } }, "✕"))),
+        el("div", { class: "rep-body" }, render(item, i))));
     });
-    wrap.append(el("button", { class: "btn btn-add", type: "button", onclick: () => { arr.push(make()); draw(); markDirty(); } }, "+ " + (addLabel || L.add)));
+    wrap.append(el("button", { class: "btn btn-add", type: "button", onclick: () => { arr.push(make()); draw(); bump(); } }, "+ " + (addLabel || L.add)));
   }
   draw();
   return wrap;
 }
 function move(arr, i, dir) { const j = i + dir; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; }
 
-/* ---------------- panels ---------------- */
-function panel(titleText, ...body) {
-  return el("div", { class: "panel" },
-    el("div", { class: "panel-heading" }, titleText),
-    el("div", { class: "panel-body" }, ...body)
-  );
+/* ---------------- panels (return arrays of nodes) ---------------- */
+function group(titleText, ...body) {
+  return [el("div", { class: "sec-title", style: "padding:0;margin:0 0 10px" }, titleText), ...body];
 }
 
 function panelGeneral(site) {
-  site.brand = site.brand || {};
-  site.meta = site.meta || {};
-  return panel(L.general,
-    textField(site.brand, "name", L.brand_name),
-    imageField(site.brand, "logo", L.logo),
-    textField(site.meta, "title", L.site_title),
-    textField(site.meta, "description", L.site_desc, { area: true, rows: 2 }),
-    el("div", { class: "row" },
-      imageField(site.meta, "favicon", L.favicon, "קובץ קטן, רצוי SVG או PNG"),
-      colorField(site.meta, "themeColor", L.theme_color))
-  );
+  site.brand = site.brand || {}; site.meta = site.meta || {};
+  return [
+    ...group("זהות העסק",
+      textField(site.brand, "name", "שם העסק"),
+      imageField(site.brand, "logo", "לוגו")),
+    ...group("איך האתר מופיע בגוגל ובלשונית",
+      textField(site.meta, "title", "כותרת הדף"),
+      textField(site.meta, "description", "תיאור לגוגל", { area: true, rows: 2 }),
+      el("div", { class: "row" },
+        imageField(site.meta, "favicon", "אייקון האתר", "קובץ קטן, רצוי SVG או PNG"),
+        colorField(site.meta, "themeColor", "צבע דפדפן"))),
+  ];
 }
 
 function panelTheme(site) {
@@ -430,144 +607,122 @@ function panelTheme(site) {
   const swatches = el("div", { class: "swatch-grid" },
     ...Object.keys(COLOR_LABELS).map((key) => {
       const input = el("input", { type: "color", value: toHex6(colors[key] || "#000000") });
-      input.addEventListener("input", () => { colors[key] = input.value; markDirty(); });
+      input.addEventListener("input", () => { colors[key] = input.value; bump(); });
       return el("div", { class: "swatch" }, input, el("span", { class: "sw-label" }, COLOR_LABELS[key]));
-    })
-  );
+    }));
   const fontOpts = FONT_CHOICES.map((f) => ({ value: f.family, label: f.label }));
   site.theme.fonts = site.theme.fonts || {};
   const headSel = selectField(site.theme.fonts, "head", "גופן כותרות", fontOpts);
   const bodySel = selectField(site.theme.fonts, "body", "גופן טקסט", fontOpts);
-  const syncFonts = () => { site.meta.fontsHref = buildFontsHref(site.theme.fonts); markDirty(); };
-  headSel.querySelector("select").addEventListener("change", syncFonts);
-  bodySel.querySelector("select").addEventListener("change", syncFonts);
-  return panel(L.theme, swatches, el("div", { class: "row" }, headSel, bodySel),
-    textField(site.theme, "radius", L.radius, { hint: "לדוגמה 14px" }));
+  const sync = () => { site.meta.fontsHref = buildFontsHref(site.theme.fonts); bump(); };
+  headSel.querySelector("select").addEventListener("change", sync);
+  bodySel.querySelector("select").addEventListener("change", sync);
+  return [
+    ...group("צבעי האתר", swatches),
+    ...group("גופנים", el("div", { class: "row" }, headSel, bodySel),
+      textField(site.theme, "radius", "עיגול פינות", { hint: "לדוגמה 14px", mono: true })),
+  ];
 }
 
 function panelNav(site) {
   site.nav = site.nav || { links: [] };
   site.nav.links = site.nav.links || [];
-  const links = repeater(site.nav.links, {
-    title: (l) => l.label || "קישור",
-    make: () => ({ label: "קישור חדש", href: "#" }),
-    render: (l) => el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "קישור")),
-  });
   site.nav.cta = site.nav.cta || { label: "", href: "#" };
-  return panel(L.navigation, links,
-    el("p", { class: "muted", style: "margin-top:14px;font-size:.85rem" }, "כפתור בולט (לא חובה):"),
-    el("div", { class: "row" }, textField(site.nav.cta, "label", "טקסט הכפתור"), textField(site.nav.cta, "href", "קישור")));
+  return [
+    ...group("קישורים בתפריט העליון",
+      repeater(site.nav.links, {
+        title: (l) => l.label || "קישור",
+        make: () => ({ label: "קישור חדש", href: "#" }),
+        render: (l) => el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "יעד")),
+      })),
+    ...group("כפתור בולט (לא חובה)",
+      el("div", { class: "row" }, textField(site.nav.cta, "label", "טקסט"), textField(site.nav.cta, "href", "יעד"))),
+  ];
 }
 
 function panelFooter(site) {
   site.footer = site.footer || { links: [] };
   site.footer.links = site.footer.links || [];
-  const links = repeater(site.footer.links, {
-    title: (l) => l.label || "קישור",
-    make: () => ({ label: "קישור", href: "#" }),
-    render: (l) => el("div", {},
-      el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "קישור")),
-      el("label", { class: "toggle" }, checkbox(l, "external"), "נפתח בלשונית חדשה")),
-  });
-  return panel(L.footer,
-    imageField(site.footer, "logo", "לוגו בתחתית"),
-    textField(site.footer, "copyright", "זכויות יוצרים"),
-    textField(site.footer, "regions", "טקסט נוסף"),
-    el("p", { class: "muted", style: "font-size:.85rem" }, "קישורים בתחתית:"), links);
+  return [
+    ...group("תחתית האתר",
+      imageField(site.footer, "logo", "לוגו בתחתית"),
+      textField(site.footer, "copyright", "זכויות יוצרים"),
+      textField(site.footer, "regions", "טקסט נוסף")),
+    ...group("קישורים בתחתית",
+      repeater(site.footer.links, {
+        title: (l) => l.label || "קישור",
+        make: () => ({ label: "קישור", href: "#" }),
+        render: (l) => el("div", {},
+          el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "יעד")),
+          el("label", { class: "toggle" }, checkbox(l, "external"), "נפתח בלשונית חדשה")),
+      })),
+  ];
 }
 
-/* ---------------- sections ---------------- */
-function panelSections(site) {
-  site.sections = site.sections || [];
-  const container = el("div", {});
-  function draw() {
-    container.replaceChildren();
-    site.sections.forEach((s, i) => {
-      const head = el("div", { class: "item-head" },
-        el("span", { class: "grip" },
-          el("span", { class: "section-type" }, SECTION_LABELS[s.type] || s.type)),
-        el("label", { class: "toggle" }, checkbox(s, "visible", true), L.visible),
-        el("div", { class: "icon-btns" },
-          el("button", { class: "btn btn-sm", type: "button", disabled: i === 0, onclick: () => { move(site.sections, i, -1); draw(); markDirty(); } }, L.up),
-          el("button", { class: "btn btn-sm", type: "button", disabled: i === site.sections.length - 1, onclick: () => { move(site.sections, i, 1); draw(); markDirty(); } }, L.down),
-          el("button", { class: "btn btn-sm", type: "button", title: "שכפול האזור", onclick: () => {
-            const copy = JSON.parse(JSON.stringify(s)); copy.id = rid(s.type);
-            site.sections.splice(i + 1, 0, copy); draw(); markDirty();
-          } }, "שכפול"),
-          el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { if (confirm("למחוק את האזור הזה?")) { site.sections.splice(i, 1); draw(); markDirty(); } } }, "✕"))
-      );
-      container.append(el("div", { class: "repeater-item" }, head, sectionEditor(s)));
-    });
-    // add-section control
-    const sel = el("select", {});
-    ADDABLE_SECTIONS.forEach((t) => sel.append(el("option", { value: t }, SECTION_LABELS[t] || t)));
-    const addBtn = el("button", { class: "btn btn-add", type: "button", onclick: () => { site.sections.push(defaultSection(sel.value)); draw(); markDirty(); } }, "+ " + L.add_section);
-    container.append(el("div", { class: "row", style: "margin-top:12px;align-items:center" }, sel, addBtn));
-  }
-  draw();
-  return panel(L.sections, container);
-}
-
+/* ---------------- section editors ---------------- */
 function sectionEditor(s) {
   const d = s.data = s.data || {};
+  const visRow = el("label", { class: "toggle", style: "margin-bottom:14px" }, checkbox(s, "visible", true), "האזור מוצג באתר");
+
   switch (s.type) {
     case "hero":
       d.ctas = d.ctas || [];
-      return el("div", {},
-        imageField(d, "logo", "לוגו"),
-        imageField(d, "background", "תמונת רקע", "מופיעה מאחורי הכותרת. ריק = רקע נקי בצבע."),
-        textField(d, "headline", "כותרת", { area: true, rows: 2, hint: "שורה חדשה = מעבר שורה" }),
+      return el("div", {}, visRow,
+        textField(d, "headline", "כותרת ראשית", { area: true, rows: 2, hint: "שורה חדשה = מעבר שורה" }),
         textField(d, "lead", "תת-כותרת", { area: true, rows: 2 }),
-        el("p", { class: "muted", style: "font-size:.85rem" }, "כפתורים:"),
+        imageField(d, "background", "תמונת רקע", "ריק = רקע נקי בצבע"),
+        imageField(d, "logo", "לוגו"),
+        el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "כפתורים"),
         repeater(d.ctas, {
           title: (c) => c.label || "כפתור",
           make: () => ({ label: "כפתור", href: "#", style: "primary" }),
           render: (c) => el("div", {},
-            el("div", { class: "row" }, textField(c, "label", "טקסט"), textField(c, "href", "קישור")),
+            el("div", { class: "row" }, textField(c, "label", "טקסט"), textField(c, "href", "יעד")),
             selectField(c, "style", "סגנון", [{ value: "primary", label: "בולט" }, { value: "ghost", label: "מתאר" }])),
         }));
+
     case "richtext":
       d.paragraphs = d.paragraphs || [];
-      return el("div", {},
+      return el("div", {}, visRow,
         textField(d, "heading", "כותרת"),
-        el("p", { class: "muted", style: "font-size:.85rem" }, "פסקאות:"),
+        el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "פסקאות"),
         repeater(d.paragraphs, {
           title: (_p, i) => `פסקה ${i + 1}`,
           make: () => "",
           render: (_p, i) => {
             const ta = el("textarea", { rows: 3 });
             ta.value = d.paragraphs[i];
-            ta.addEventListener("input", () => { d.paragraphs[i] = ta.value; markDirty(); });
+            ta.addEventListener("input", () => { d.paragraphs[i] = ta.value; bump(); });
             return el("div", { class: "field" }, ta);
           },
         }));
-    case "menu":
-      return menuEditor(d);
+
+    case "menu":      return el("div", {}, visRow, menuEditor(d));
+    case "locations": return el("div", {}, visRow, locationsEditor(d));
+
     case "gallery":
       d.images = d.images || [];
-      return el("div", {},
+      return el("div", {}, visRow,
         textField(d, "heading", "כותרת"),
         textField(d, "intro", "טקסט פתיחה", { area: true, rows: 2 }),
-        el("p", { class: "muted", style: "font-size:.85rem" }, "תמונות הגלריה:"),
+        el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "תמונות"),
         repeater(d.images, {
           title: (im, i) => im.alt || `תמונה ${i + 1}`,
           make: () => ({ src: "", alt: "" }),
           addLabel: "הוספת תמונה",
-          render: (im) => el("div", {},
-            imageField(im, "src", "תמונה"),
-            textField(im, "alt", "תיאור (נגישות)")),
+          render: (im) => el("div", {}, imageField(im, "src", "תמונה"), textField(im, "alt", "תיאור (נגישות)")),
         }));
+
     case "media":
-      return el("div", {},
-        imageField(d, "poster", "תמונת פתיחה / נפילה"),
+      return el("div", {}, visRow,
+        imageField(d, "poster", "תמונת פתיחה"),
         videoField(d, "video", "וידאו (לא חובה)"),
         textField(d, "sectionLabel", "תיאור האזור (נגישות)"),
         textField(d, "videoLabel", "תיאור הוידאו (נגישות)"));
-    case "locations":
-      return locationsEditor(d);
+
     case "social":
       d.links = d.links || [];
-      return el("div", {},
+      return el("div", {}, visRow,
         textField(d, "heading", "כותרת"),
         textField(d, "intro", "טקסט", { area: true, rows: 2 }),
         repeater(d.links, {
@@ -577,8 +732,9 @@ function sectionEditor(s) {
             selectField(l, "network", "רשת", SOCIAL_OPTIONS),
             el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "url", "קישור"))),
         }));
+
     default:
-      return el("div", { class: "muted" }, "אזור מסוג זה אינו נתמך לעריכה.");
+      return el("div", { class: "empty" }, "אזור מסוג זה אינו נתמך לעריכה.");
   }
 }
 
@@ -587,8 +743,8 @@ function menuEditor(d) {
   return el("div", {},
     textField(d, "heading", "כותרת התפריט"),
     textField(d, "intro", "טקסט פתיחה", { area: true, rows: 2 }),
-    textField(d, "currency", "מטבע", { hint: "₪" }),
-    el("p", { class: "muted", style: "font-size:.85rem;margin-top:12px" }, "קטגוריות:"),
+    textField(d, "currency", "מטבע", { hint: "₪", mono: true }),
+    el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "קטגוריות ומנות"),
     repeater(d.categories, {
       title: (c) => c.title || "קטגוריה",
       make: () => ({ id: rid("cat"), title: "קטגוריה חדשה", groups: [{ items: [] }] }),
@@ -598,9 +754,8 @@ function menuEditor(d) {
         return el("div", {},
           el("div", { class: "row" }, textField(c, "title", "שם הקטגוריה"), textField(c, "navLabel", "שם בתפריט (אופציונלי)")),
           textField(c, "note", "הערה (אופציונלי)"),
-          el("p", { class: "muted", style: "font-size:.82rem" }, "קבוצות מנות:"),
           repeater(c.groups, {
-            title: (g) => g.subhead || "קבוצה",
+            title: (g) => g.subhead || "קבוצת מנות",
             make: () => ({ subhead: "", items: [] }),
             addLabel: "הוספת קבוצה",
             render: (g) => {
@@ -612,7 +767,9 @@ function menuEditor(d) {
                   make: () => ({ name: "מנה חדשה", price: "", desc: "", tags: [] }),
                   addLabel: "הוספת מנה",
                   render: (it) => el("div", {},
-                    el("div", { class: "row" }, textField(it, "name", "שם המנה"), textField(it, "price", "מחיר")),
+                    el("div", { class: "row" },
+                      textField(it, "name", "שם המנה"),
+                      textField(it, "price", "מחיר", { mono: true, hint: "מספר בלבד" })),
                     textField(it, "desc", "תיאור", { area: true, rows: 2 }),
                     tagPicker(it)),
                 }));
@@ -628,10 +785,10 @@ function locationsEditor(d) {
     textField(d, "heading", "כותרת"),
     textField(d, "intro", "טקסט פתיחה", { area: true, rows: 2 }),
     textField(d, "footnote", "הערת שוליים", { area: true, rows: 2 }),
-    el("p", { class: "muted", style: "font-size:.85rem" }, "סניפים:"),
+    el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "סניפים"),
     repeater(d.branches, {
       title: (b) => b.name || "סניף",
-      make: () => ({ id: rid("branch"), name: "סניף חדש", desc: "", waze: { lat: 0, lng: 0 }, hours: defaultHours() }),
+      make: () => ({ id: rid("branch"), name: "סניף חדש", desc: "", waze: { lat: 32.0853, lng: 34.7818 }, hours: defaultHours() }),
       addLabel: "הוספת סניף",
       render: (b) => {
         b.waze = b.waze || { lat: 0, lng: 0 };
@@ -639,8 +796,9 @@ function locationsEditor(d) {
         return el("div", {},
           textField(b, "name", "שם הסניף"),
           textField(b, "desc", "תיאור", { area: true, rows: 2 }),
-          el("div", { class: "row" }, numField(b.waze, "lat", "Waze קו רוחב"), numField(b.waze, "lng", "Waze קו אורך")),
-          el("p", { class: "muted", style: "font-size:.82rem" }, "שעות פתיחה (24 שעות, ריק = סגור):"),
+          el("div", { class: "row" }, numField(b.waze, "lat", "קו רוחב (Waze)"), numField(b.waze, "lng", "קו אורך (Waze)")),
+          el("div", { class: "hint", style: "margin:-8px 0 12px" }, "מ-Google Maps: לחיצה ימנית על המיקום מעתיקה את שתי הנקודות."),
+          el("label", { style: "display:block;font-size:.76rem;color:var(--ink-2);margin-bottom:8px" }, "שעות פתיחה — ריק = סגור"),
           hoursGrid(b.hours));
       },
     }));
@@ -650,25 +808,23 @@ function hoursGrid(hours) {
   const grid = el("div", { class: "hours-grid" });
   for (let day = 0; day < 7; day++) {
     const cur = hours[String(day)] ?? hours[day] ?? null;
-    const open = el("input", { type: "number", min: 0, max: 24, step: 0.5, value: cur ? cur[0] : "" });
-    const close = el("input", { type: "number", min: 0, max: 24, step: 0.5, value: cur ? cur[1] : "" });
+    const open = el("input", { type: "text", placeholder: "פתיחה", value: cur ? cur[0] : "" });
+    const close = el("input", { type: "text", placeholder: "סגירה", value: cur ? cur[1] : "" });
     const sync = () => {
-      const o = open.value === "" ? null : parseFloat(open.value);
-      const c = close.value === "" ? null : parseFloat(close.value);
-      hours[String(day)] = o == null || c == null ? null : [o, c];
-      markDirty();
+      const o = open.value.trim() === "" ? null : parseFloat(open.value);
+      const c = close.value.trim() === "" ? null : parseFloat(close.value);
+      hours[String(day)] = (o == null || c == null || isNaN(o) || isNaN(c)) ? null : [o, c];
+      bump();
     };
     open.addEventListener("input", sync);
     close.addEventListener("input", sync);
-    grid.append(el("span", { class: "day" }, DAY_NAMES[day]), open, close,
-      el("span", { class: "muted", style: "font-size:.75rem" }, "פתיחה / סגירה"));
+    grid.append(el("span", { class: "day" }, DAY_NAMES[day]), open, close);
   }
   return grid;
 }
 
 function tagPicker(item) {
   item.tags = item.tags || [];
-  const wrap = el("div", { class: "field" }, el("label", {}, "סימונים"));
   const pick = el("div", { class: "tag-pick" });
   for (const t of TAG_OPTIONS) {
     const cb = el("input", { type: "checkbox" });
@@ -677,15 +833,14 @@ function tagPicker(item) {
       const i = item.tags.indexOf(t.value);
       if (cb.checked && i < 0) item.tags.push(t.value);
       else if (!cb.checked && i >= 0) item.tags.splice(i, 1);
-      markDirty();
+      bump();
     });
     pick.append(el("label", { class: "toggle" }, cb, t.label));
   }
-  wrap.append(pick);
-  return wrap;
+  return el("div", { class: "field" }, el("label", {}, "סימונים"), pick);
 }
 
-/* ---------------- default sections for "add" ---------------- */
+/* ---------------- default sections ---------------- */
 function defaultSection(type) {
   const base = { id: rid(type), type, visible: true };
   switch (type) {
@@ -708,73 +863,47 @@ function defaultSection(type) {
   }
 }
 
-/* ---------------- save / publish / import ---------------- */
-function save() {
-  if (state.busy) return;
-  try {
-    saveDraft(state.site);
-    state.dirty = false;
-    setStatus(L.saved, "ok");
-  } catch (err) {
-    setStatus("שמירה נכשלה: " + err.message, "err");
-  }
-}
-
+/* ---------------- publish ---------------- */
 async function buildHtml() {
-  const [{ render }, tplRes] = await Promise.all([
-    import("../render.mjs"),
-    fetch(templateUrl()),
-  ]);
+  const [{ render }, tplRes] = await Promise.all([import("../render.mjs"), fetch(templateUrl())]);
   if (!tplRes.ok) throw new Error("template " + tplRes.status);
   const template = await tplRes.text();
   let html = render(state.site, template);
-  // Embed the content model so the editor can re-open the published site later.
-  // Escape "<" so the JSON can never close the script tag early.
   const json = JSON.stringify(state.site).replace(/</g, "\\u003c");
-  const dataTag = `<script type="application/json" id="cms-data">${json}</script>`;
-  return html.replace("</body>", dataTag + "\n</body>");
+  return html.replace("</body>", `<script type="application/json" id="cms-data">${json}</script>\n</body>`);
 }
 
 async function downloadFile() {
   if (state.busy) return;
   state.busy = true;
-  setStatus(L.publishing, "");
+  setStatus("מייצר קובץ…", "");
   try {
     saveDraft(state.site);
-    const html = await buildHtml();
-    download((SITE_ID || "site") + "-index.html", html, "text/html");
+    download((SITE_ID || "site") + "-index.html", await buildHtml(), "text/html");
     pushVersion("הורדת קובץ");
-    setStatus(L.published, "ok");
-  } catch (err) {
-    setStatus("הפרסום נכשל: " + err.message, "err");
-  } finally { state.busy = false; }
+    setStatus("הקובץ ירד ✓", "ok");
+  } catch (err) { setStatus("נכשל: " + err.message, "err"); }
+  finally { state.busy = false; }
 }
 
 async function publishToGitHub() {
   if (state.busy) return;
   state.busy = true;
-  setStatus("מפרסם לאינטרנט…", "");
+  setStatus("מפרסם…", "");
   try {
     saveDraft(state.site);
     const html = await buildHtml();
-
-    // Calls the Vercel serverless function (/api/publish) which holds the
-    // GitHub token securely in environment variables — never in the browser.
     const res = await fetch("/api/publish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ html }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ html }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || err.message || "HTTP " + res.status);
     }
-
     pushVersion("פורסם לאינטרנט");
-    setStatus("האתר פורסם ✓ — Vercel מעדכן תוך שניות", "ok");
-  } catch (err) {
-    setStatus("פרסום נכשל: " + err.message, "err");
-  } finally { state.busy = false; }
+    setStatus("פורסם ✓ — האתר מתעדכן תוך שניות", "ok");
+  } catch (err) { setStatus("פרסום נכשל: " + err.message, "err"); }
+  finally { state.busy = false; }
 }
 
 function importFromFile() {
@@ -783,33 +912,25 @@ function importFromFile() {
   inp.accept = ".html,.json,text/html,application/json";
   inp.style.display = "none";
   inp.addEventListener("change", async () => {
-    inp.remove(); // remove only AFTER the change event fires (Chrome requires element in DOM until then)
+    inp.remove(); // only after change fires — Chrome won't fire it on a detached input
     const f = inp.files[0];
     if (!f) return;
     try {
       const text = await f.text();
       let site;
-      if (/\.json$/i.test(f.name) || text.trim().startsWith("{")) {
-        site = JSON.parse(text);
-      } else {
+      if (/\.json$/i.test(f.name) || text.trim().startsWith("{")) site = JSON.parse(text);
+      else {
         site = extractEmbedded(text);
-        if (!site) throw new Error(
-          'קובץ זה אינו מכיל נתוני CMS. יש לייבא קובץ שיוצא מהמערכת (לחיצה על "הורדת קובץ" או "פרסם לאינטרנט").'
-        );
+        if (!site) throw new Error('הקובץ אינו מכיל נתוני CMS. ייבאו קובץ שיוצא מהמערכת.');
       }
       if (!site.sections) throw new Error("מבנה הקובץ שגוי — חסר שדה sections.");
-      state.site = site;
-      saveDraft(site);
-      state.dirty = false;
-      renderEditor();
-      setStatus("האתר נטען לעריכה ✓", "ok");
-    } catch (err) {
-      setStatus("טעינה נכשלה: " + err.message, "err");
-    }
+      state.site = site; saveDraft(site); state.dirty = false;
+      renderDeck();
+      setStatus("האתר נטען ✓", "ok");
+    } catch (err) { setStatus("טעינה נכשלה: " + err.message, "err"); }
   });
   document.body.appendChild(inp);
   inp.click();
-  // NOTE: do NOT call inp.remove() here — Chrome 68+ won't fire change on a disconnected input
 }
 
 function extractEmbedded(html) {
@@ -826,9 +947,7 @@ function download(name, text, type) {
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-/* ---------------- image / video to data-URI ---------------- */
-const isInline = (s) => typeof s === "string" && /^(data:|blob:)/.test(s);
-
+/* ---------------- media → data-URI ---------------- */
 function fileToDataURL(blob) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -837,16 +956,11 @@ function fileToDataURL(blob) {
     r.readAsDataURL(blob);
   });
 }
-
 async function uploadImage(file) {
-  let blob = file, type = file.type;
-  if (type !== "image/svg+xml" && type !== "image/gif") {
-    const r = await downscale(file, 1600);
-    blob = r.blob; type = r.type;
-  }
-  return fileToDataURL(blob); // inline data-URI — travels with the export, no hosting
+  let blob = file;
+  if (file.type !== "image/svg+xml" && file.type !== "image/gif") blob = (await downscale(file, 1600)).blob;
+  return fileToDataURL(blob);
 }
-
 function downscale(file, maxDim) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -865,37 +979,31 @@ function downscale(file, maxDim) {
 }
 
 /* ---------------- preview ---------------- */
-let previewOn = window.innerWidth > 960; // live preview on by default on desktop
+let previewOn = window.innerWidth > 1100;
 async function togglePreview() {
   previewOn = !previewOn;
-  const shell = document.getElementById("shell");
-  const pane = shell.querySelector(".preview-pane");
-  shell.classList.toggle("with-preview", previewOn);
-  pane.classList.toggle("hide", !previewOn);
+  document.querySelector(".viewport")?.classList.toggle("hide", !previewOn);
+  buildRail();
   if (previewOn) await refreshPreview();
 }
 async function refreshPreview() {
+  if (!$previewFrame) return;
   try {
-    const [{ render }, tplRes] = await Promise.all([
-      import("../render.mjs"),
-      fetch(templateUrl()),
-    ]);
+    const [{ render }, tplRes] = await Promise.all([import("../render.mjs"), fetch(templateUrl())]);
     if (!tplRes.ok) throw new Error("template " + tplRes.status);
     const template = await tplRes.text();
     const html = render(state.site, template);
-    // Rebase any relative asset URLs to the kit root so they still resolve in the
-    // iframe (uploads are data-URIs and need no rebasing).
     const base = new URL(templateUrl());
     $previewFrame.srcdoc = html.replace("<head>", `<head><base href="${base.origin}${base.pathname.replace(/[^/]+$/, "")}">`);
   } catch (err) {
-    $previewFrame.srcdoc = `<!doctype html><meta charset=utf-8><body style="font-family:sans-serif;padding:24px;color:#444">טעינת תצוגה מקדימה נכשלה: ${err.message}</body>`;
+    $previewFrame.srcdoc = `<!doctype html><meta charset=utf-8><body style="font-family:sans-serif;padding:24px;color:#666">תצוגה מקדימה נכשלה: ${err.message}</body>`;
   }
 }
 
 /* ---------------- helpers ---------------- */
 function toHex6(v) {
   if (typeof v !== "string") return "#000000";
-  let s = v.trim();
+  const s = v.trim();
   if (/^#[0-9a-fA-F]{3}$/.test(s)) return "#" + s.slice(1).split("").map((c) => c + c).join("");
   if (/^#[0-9a-fA-F]{8}$/.test(s)) return s.slice(0, 7);
   if (/^#[0-9a-fA-F]{6}$/.test(s)) return s;
@@ -907,7 +1015,6 @@ function buildFontsHref(fonts) {
     const f = FONT_CHOICES.find((c) => c.family === v);
     if (f) fams.add(f.href.match(/family=([^&]+)/)?.[1]);
   }
-  // Always keep Amatic SC (the chalkboard "open/closed" signs use it).
   fams.add("Amatic+SC:wght@700");
   return "https://fonts.googleapis.com/css2?" + [...fams].filter(Boolean).map((f) => "family=" + f).join("&") + "&display=swap";
 }
