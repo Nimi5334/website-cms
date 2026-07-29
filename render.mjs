@@ -42,6 +42,7 @@ const cssUrl = (s) => `url('${String(s ?? "").replace(/'/g, "%27")}')`;
 function renderTokens(theme) {
   const c = theme.colors || {};
   return [
+    `  --bg-image:${theme.backgroundImage ? cssUrl(theme.backgroundImage) : "none"};`,
     `  --bg:${c.bg};`,
     `  --bg-deep:${c.bgDeep};`,
     `  --surface:${c.surface};`,

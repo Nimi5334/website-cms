@@ -45,6 +45,7 @@ const ICON = {
   clock:   "M10 17.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15zM10 5.8V10l2.8 1.7",
   upload:  "M10 13V3.5M6.5 7 10 3.5 13.5 7M3.5 13v2.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V13",
   search:  "M9 15A6 6 0 1 0 9 3a6 6 0 0 0 0 12zM17 17l-3.7-3.7",
+  undo:    "M8.5 4.5 4 9l4.5 4.5M4 9h8a5 5 0 0 1 0 10h-2",
 };
 function icon(name, cls = "") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -76,8 +77,6 @@ const state = {
  * two different accounts sharing one browser never collide. */
 const localKey    = (userId) => `${STORAGE_KEY}:${userId}`;
 const versionsKey = (userId) => localKey(userId) + ":versions";
-// Pre-accounts key: what a lone-editor browser used before signup existed.
-const legacyKey = () => STORAGE_KEY;
 
 function loadDraft(userId) {
   const s = localStorage.getItem(localKey(userId));
@@ -89,11 +88,6 @@ function saveDraft(userId, site) { localStorage.setItem(localKey(userId), JSON.s
 function persistNow(site) {
   try { saveDraft(state.user.id, site); } catch {}
   upsertSite(state.user.id, site).catch((err) => console.error("upsertSite error:", err));
-}
-function loadLegacyDraft() {
-  const s = localStorage.getItem(legacyKey());
-  if (s) { try { return JSON.parse(s); } catch {} }
-  return null;
 }
 async function loadStarter() {
   const res = await fetch(starterContentUrl() + "?bust=" + Date.now());
@@ -199,14 +193,13 @@ async function boot() {
     if (remote) {
       state.site = remote;
     } else {
-      // First login for this account: no row yet. Offer to import a local
-      // draft left over from before accounts existed, else seed the starter.
-      const legacy = loadLegacyDraft();
-      if (legacy && confirm("מצאנו טיוטה קודמת בדפדפן הזה. לייבא אותה לחשבון החדש?")) {
-        state.site = legacy;
-      } else {
-        state.site = await loadStarter();
-      }
+      // First login for this account: no row yet — always seed the clean
+      // generic starter. (Previously this offered to import a leftover
+      // browser-local draft from before accounts existed; that meant a new
+      // signup on a browser that had been used to edit a *different*
+      // customer's site could pick up that customer's content by mistake.
+      // Every new account must start from the same blank starter, full stop.)
+      state.site = await loadStarter();
       await upsertSite(state.user.id, state.site);
     }
 
@@ -258,6 +251,20 @@ function pushVersion(label) {
     localStorage.setItem(versionsKeyFor(), JSON.stringify(v));
   } catch {}
 }
+/** Quick one-click undo: restores the most recent snapshot in version
+ * history (pushed automatically before every deletion — see rowMenu,
+ * repeater, and imageField below — plus on every publish/download), without
+ * needing to open the היסטוריה modal first. */
+function undoLast() {
+  const versions = loadVersions();
+  if (!versions.length) { setStatus("אין שינויים לביטול", "warn"); return; }
+  pushVersion("לפני ביטול");
+  state.site = clone(versions[0].site);
+  persistNow(state.site);
+  renderDeck();
+  setStatus("השינוי האחרון בוטל ✓", "ok");
+}
+
 function showVersions() {
   const versions = loadVersions();
   const scrim = el("div", { class: "scrim", onclick: close });
@@ -321,8 +328,9 @@ function renderDeck() {
     $status,
     el("button", { class: "btn btn-sm", onclick: importFromFile, title: "טעינת אתר קיים" }, "ייבוא"),
     el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
+    el("button", { class: "btn btn-sm", onclick: undoLast, title: "ביטול השינוי האחרון (מחיקות/עריכות)" }, icon("undo"), " ביטול"),
     el("button", {
-      class: "btn btn-sm", title: state.user?.email || "",
+      class: "btn btn-sm btn-logout", title: state.user?.email || "",
       onclick: async () => { await signOut(); state.user = null; boot(); },
     }, L.logout));
 
@@ -500,7 +508,7 @@ function rowMenu(anchor, s, i, redraw) {
     el("button", { disabled: i === 0, onclick: () => { move(sections, i, -1); close(); redraw(); markDirty(); } }, "העלאה למעלה"),
     el("button", { disabled: i === sections.length - 1, onclick: () => { move(sections, i, 1); close(); redraw(); markDirty(); } }, "הורדה למטה"),
     el("button", { onclick: () => { const c = clone(s); c.id = rid(s.type); sections.splice(i + 1, 0, c); close(); redraw(); markDirty(); } }, "שכפול"),
-    el("button", { class: "danger", onclick: () => { if (confirm("למחוק את האזור?")) { sections.splice(i, 1); close(); redraw(); markDirty(); } } }, "מחיקה"));
+    el("button", { class: "danger", onclick: () => { if (confirm("למחוק את האזור?")) { pushVersion("לפני מחיקת אזור"); sections.splice(i, 1); close(); redraw(); markDirty(); } } }, "מחיקה"));
   function close() { menu.remove(); document.removeEventListener("click", onDoc, true); }
   function onDoc(e) { if (!menu.contains(e.target)) close(); }
   document.body.append(menu);
@@ -637,7 +645,7 @@ function imageField(obj, key, label, hint) {
   const file = el("input", { type: "file", accept: "image/*", style: "display:none" });
   const upBtn = el("button", { class: "btn btn-sm", type: "button", onclick: () => file.click() }, "העלאה");
   const clr = el("button", { class: "btn btn-sm btn-danger", type: "button", title: "הסרה",
-    onclick: () => { obj[key] = ""; setThumb(); bump(); } }, "✕");
+    onclick: () => { pushVersion("לפני הסרת תמונה"); obj[key] = ""; setThumb(); bump(); } }, "✕");
   file.addEventListener("change", async () => {
     if (!file.files[0]) return;
     upBtn.disabled = true; upBtn.textContent = "מעלה…";
@@ -683,7 +691,7 @@ function repeater(arr, { title, make, render, addLabel }) {
           el("div", { class: "icon-btns" },
             el("button", { class: "btn btn-sm", type: "button", disabled: i === 0, onclick: () => { move(arr, i, -1); draw(); bump(); } }, "↑"),
             el("button", { class: "btn btn-sm", type: "button", disabled: i === arr.length - 1, onclick: () => { move(arr, i, 1); draw(); bump(); } }, "↓"),
-            el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { arr.splice(i, 1); draw(); bump(); } }, "✕"))),
+            el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { pushVersion("לפני מחיקה"); arr.splice(i, 1); draw(); bump(); } }, "✕"))),
         el("div", { class: "rep-body" }, render(item, i))));
     });
     wrap.append(el("button", { class: "btn btn-add", type: "button", onclick: () => { arr.push(make()); draw(); bump(); } }, "+ " + (addLabel || L.add)));
@@ -731,6 +739,8 @@ function panelTheme(site) {
   bodySel.querySelector("select").addEventListener("change", sync);
   return [
     ...group("צבעי האתר", swatches),
+    ...group("רקע כללי לאתר",
+      imageField(site.theme, "backgroundImage", "תמונת רקע לכל האתר", "ריק = רקע נקי בצבע הראשי שנבחר למעלה. התמונה תופיע מאחורי כל התוכן באתר.")),
     ...group("גופנים", el("div", { class: "row" }, headSel, bodySel),
       textField(site.theme, "radius", "עיגול פינות", { hint: "לדוגמה 14px", mono: true })),
   ];

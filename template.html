@@ -19,11 +19,11 @@
 /* No transitions during first paint: prevents the hidden mobile nav
    (and anything else) from flashing/ghosting while the page loads */
 html.preload *,html.preload *::before,html.preload *::after{transition:none !important}
-html{scroll-behavior:smooth;background:var(--bg);color-scheme:light}
+html{scroll-behavior:smooth;background:var(--bg-image,none) center/cover no-repeat,var(--bg);color-scheme:light}
 html:focus-within{scroll-behavior:smooth}
 body{
   margin:0;font-family:var(--font-body);font-size:17px;line-height:1.6;
-  color:var(--ink);background:var(--bg);text-rendering:optimizeLegibility;
+  color:var(--ink);background:transparent;text-rendering:optimizeLegibility;
   -webkit-font-smoothing:antialiased;overflow-x:hidden;
 }
 img{max-width:100%;height:auto;display:block}
