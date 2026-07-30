@@ -231,10 +231,27 @@ function markDirty() {
       console.error("upsertSite error:", err);
       setStatus("נשמר מקומית · בעיה בסנכרון לענן", "warn");
     }
+    sessionSnapshotTaken = false; // next field touched starts a fresh undo point
   }, 700);
   clearTimeout(previewDebounce);
   previewDebounce = setTimeout(() => { refreshStats(); if (previewOn) refreshPreview(); }, 420);
 }
+
+/* Every ordinary field edit (text, color, select, checkbox…) goes through
+ * bump()/markDirty() *after* the value has already been overwritten in
+ * memory — too late to snapshot "before" from there. So instead we snapshot
+ * on first focus of any field since the last save: this is still the
+ * pre-edit state. Previously pushVersion() only ran before deletions and on
+ * publish/download, so the "ביטול" (undo) button had nothing to restore to
+ * after a plain text/color/image edit — this closes that gap. */
+let sessionSnapshotTaken = false;
+document.addEventListener("focusin", (e) => {
+  if (sessionSnapshotTaken || !state.user || !state.site) return;
+  const t = e.target;
+  if (!t.matches || !t.matches("input, textarea, select")) return;
+  pushVersion("לפני עריכה");
+  sessionSnapshotTaken = true;
+}, true);
 
 /* ---------------- version history ----------------
  * Stays local to this browser/account (a "recent undo" convenience) — not
@@ -261,6 +278,7 @@ function undoLast() {
   pushVersion("לפני ביטול");
   state.site = clone(versions[0].site);
   persistNow(state.site);
+  sessionSnapshotTaken = false;
   renderDeck();
   setStatus("השינוי האחרון בוטל ✓", "ok");
 }
@@ -282,6 +300,7 @@ function showVersions() {
         pushVersion("לפני שחזור");
         state.site = clone(v.site);
         persistNow(state.site);
+        sessionSnapshotTaken = false;
         close(); renderDeck();
         setStatus("שוחזר ✓", "ok");
       } }, "שחזור")));
@@ -1048,6 +1067,7 @@ function importFromFile() {
       }
       if (!site.sections) throw new Error("מבנה הקובץ שגוי — חסר שדה sections.");
       state.site = site; persistNow(site); state.dirty = false;
+      sessionSnapshotTaken = false;
       renderDeck();
       setStatus("האתר נטען ✓", "ok");
     } catch (err) { setStatus("טעינה נכשלה: " + err.message, "err"); }
