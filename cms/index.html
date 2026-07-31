@@ -41,8 +41,6 @@
   --red:       #C0392B;
   --red-dim:   rgba(192,57,43,0.10);
 
-  --rail:      252px;
-  --rail-collapsed: 68px;
   --r:         12px;
   --r-sm:      8px;
   --r-pill:    100px;
@@ -101,52 +99,83 @@ input, textarea, select { font-family: inherit; }
 }
 .auth-tabs button.on { background: var(--blue); color: #fff; font-weight: 600; }
 
-/* ═══ DECK LAYOUT ═══ RTL: rail is first → renders on the RIGHT edge */
+/* ═══ DECK LAYOUT ═══ Navigation lives in an animated slide-out drawer,
+   not a permanently-docked sidebar — the stage takes the full width and
+   the drawer overlays on top when opened via the hamburger button. */
 .deck { display: flex; height: 100dvh; background: var(--canvas); }
 
-/* ─── Sidebar (workspace nav) ────────────────────────────── */
-.rail {
-  width: var(--rail); flex-shrink: 0;
-  background: var(--surface);
-  border-inline-start: 1px solid var(--hair);
-  display: flex; flex-direction: column;
-  padding: 12px; gap: 2px;
-  transition: width .18s ease;
-  overflow-x: hidden;
+/* ─── Nav scrim (dims the page behind the open drawer) ───── */
+.nav-scrim {
+  position: fixed; inset: 0; z-index: 70; background: rgba(24,24,27,.38);
+  opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s;
 }
-.rail.collapsed { width: var(--rail-collapsed); padding-inline: 8px; }
+.nav-scrim.open { opacity: 1; visibility: visible; transition-delay: 0s; }
+
+/* ─── Nav drawer (animated slide-out menu) ─────────────────
+   Pinned to the physical right edge (inset-inline-start = "right" in
+   this RTL app). translateX is a physical transform regardless of
+   direction, so translateX(100%) correctly slides it off past the
+   right edge, out of view, when closed. */
+.nav-drawer {
+  position: fixed; z-index: 71; inset-block: 0; inset-inline-start: 0;
+  width: min(300px, 86vw); background: var(--surface);
+  border-inline-end: 1px solid var(--hair);
+  box-shadow: -18px 0 48px rgba(24,24,27,.14);
+  display: flex; flex-direction: column; padding: 16px 14px;
+  transform: translateX(100%);
+  transition: transform .38s cubic-bezier(.22,.9,.28,1.08);
+}
+.nav-drawer.open { transform: translateX(0); }
+
+/* thin draggable strip along the drawer's inner (content-facing) edge —
+   drag it further inward (toward the page) to close, like swiping the
+   panel away */
+.nav-drag-handle {
+  position: absolute; top: 0; bottom: 0; inset-inline-end: -10px; width: 20px;
+  cursor: grab; touch-action: none;
+}
+.nav-close-btn {
+  position: absolute; top: 14px; inset-inline-end: 14px; z-index: 1;
+  width: 30px; height: 30px; border-radius: 50%; background: var(--raised-2);
+  color: var(--ink-2); display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; transition: background .12s, color .12s, transform .18s;
+}
+.nav-close-btn:hover { background: var(--hair-2); color: var(--ink); transform: rotate(90deg); }
 
 .rail-header {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px; margin-bottom: 10px; border-radius: var(--r-sm);
+  padding: 8px; margin: 36px 0 14px; border-radius: var(--r-sm);
 }
 .rail-avatar {
-  flex-shrink: 0; width: 32px; height: 32px; border-radius: var(--r-sm);
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: var(--r-sm);
   background: var(--blue); color: #fff;
-  display: grid; place-items: center; font-weight: 700; font-size: .82rem;
+  display: grid; place-items: center; font-weight: 700; font-size: .85rem;
 }
 .rail-header-txt { display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-.rail.collapsed .rail-header-txt { display: none; }
-.rail-header-name { font-size: .83rem; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rail-header-sub { font-size: .71rem; color: var(--ink-3); line-height: 1.3; }
+.rail-header-name { font-size: .87rem; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rail-header-sub { font-size: .73rem; color: var(--ink-3); line-height: 1.3; }
 
 .rail-group { display: flex; flex-direction: column; gap: 1px; margin-bottom: 10px; }
 .rail-heading {
   padding: 6px 10px 4px; font-size: .66rem; font-weight: 700; letter-spacing: .08em;
   text-transform: uppercase; color: var(--ink-3);
 }
-.rail.collapsed .rail-heading { display: none; }
 
+/* nav-drawer items: staggered slide-in when the drawer opens, using a
+   per-item --i index (set inline by app.js) for the transition-delay */
 .rail-btn {
-  width: 100%; padding: 8px 10px; border-radius: var(--r-sm);
+  width: 100%; padding: 9px 10px; border-radius: var(--r-sm);
   display: flex; align-items: center; gap: 10px;
-  color: var(--ink-2); font-weight: 500; transition: color .13s, background .13s;
+  color: var(--ink-2); font-weight: 500;
   position: relative; text-align: start; white-space: nowrap; overflow: hidden;
+  opacity: 0; transform: translateX(14px);
+  transition: color .13s, background .13s,
+              opacity .32s ease calc(var(--i, 0) * 45ms),
+              transform .32s cubic-bezier(.22,.9,.3,1.05) calc(var(--i, 0) * 45ms);
 }
+.nav-drawer.open .rail-btn { opacity: 1; transform: none; }
 .rail-btn svg { width: 17px; height: 17px; stroke-width: 1.6; flex-shrink: 0; }
-.rail-btn span { font-size: .82rem; overflow: hidden; text-overflow: ellipsis; }
-.rail.collapsed .rail-btn { justify-content: center; padding-inline: 0; }
-.rail.collapsed .rail-btn span { display: none; }
+.rail-btn span { font-size: .84rem; overflow: hidden; text-overflow: ellipsis; }
 .rail-btn:hover { color: var(--ink); background: var(--blue-dim); }
 .rail-btn.on { color: var(--ink); background: var(--blue-dim); font-weight: 600; }
 .rail-btn-danger:hover { color: var(--red); background: var(--red-dim); }
@@ -159,18 +188,18 @@ input, textarea, select { font-family: inherit; }
 /* ─── Stage (main column) ────────────────────────────────── */
 .stage { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-/* Top line: collapse toggle + breadcrumb + command bar */
+/* Top line: hamburger + breadcrumb + command bar */
 .topline {
   height: 56px; flex-shrink: 0; display: flex; align-items: center; gap: 12px;
   padding: 0 18px; border-bottom: 1px solid var(--hair); background: var(--surface);
 }
-.rail-collapse-btn {
+.nav-open-btn {
   display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: var(--r-sm); color: var(--ink-2);
+  width: 32px; height: 32px; border-radius: var(--r-sm); color: var(--ink-2);
   transition: background .12s, color .12s; flex-shrink: 0;
 }
-.rail-collapse-btn svg { width: 17px; height: 17px; stroke-width: 1.6; }
-.rail-collapse-btn:hover { background: var(--raised-2); color: var(--ink); }
+.nav-open-btn svg { width: 18px; height: 18px; stroke-width: 1.6; }
+.nav-open-btn:hover { background: var(--raised-2); color: var(--ink); }
 .crumb { display: flex; align-items: center; gap: 8px; font-size: .84rem; min-width: 0; overflow: hidden; }
 .crumb-root { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22vw; }
 .crumb-sep { color: var(--ink-3); }
@@ -514,16 +543,8 @@ input, textarea, select { font-family: inherit; }
 }
 @media (max-width: 620px) {
   body { overflow: auto; }
-  .deck { flex-direction: column-reverse; height: auto; min-height: 100dvh; }
-  .rail {
-    width: 100% !important; flex-direction: row; flex-wrap: nowrap; overflow-x: auto;
-    border-inline-start: none; border-top: 1px solid var(--hair);
-    position: sticky; bottom: 0; z-index: 20; padding: 6px 8px; gap: 4px;
-  }
-  .rail-header, .rail-heading, .rail-sep { display: none; }
-  .rail-group, .rail-bottom { flex-direction: row; border: none; padding: 0; margin: 0; gap: 4px; }
-  .rail-btn { width: auto; flex-direction: column; gap: 2px; padding: 6px 8px; justify-content: center; }
-  .rail-btn span { display: block !important; font-size: .58rem; }
+  .deck { height: auto; min-height: 100dvh; }
+  .nav-drawer { width: min(280px, 88vw); }
   .stats { gap: 18px; overflow-x: auto; }
   .cmd { width: 100%; }
   .topline { flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 8px; }

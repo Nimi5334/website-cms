@@ -48,8 +48,6 @@ const ICON = {
   undo:    "M8.5 4.5 4 9l4.5 4.5M4 9h8a5 5 0 0 1 0 10h-2",
   book:    "M10 5.5C8.5 4.3 6 4 3.5 4.5v10.5c2.5-.5 5-.2 6.5 1V5.5zM10 5.5c1.5-1.2 4-1.5 6.5-1v10.5c-2.5-.5-5-.2-6.5 1V5.5z",
   logout:  "M8 17.5H4.5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1H8M13 13.5l3.5-3.5-3.5-3.5M16.2 10H7.5",
-  panelClose: "M4 4.5h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM8 4.5v11M13.5 8l-2 2 2 2",
-  panelOpen:  "M4 4.5h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM8 4.5v11M12 8l2 2-2 2",
 };
 function icon(name, cls = "") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -73,7 +71,7 @@ const state = {
   busy: false,
   user: null, // { id, email } once signed in via Supabase
   view: "sections",
-  railCollapsed: false,
+  navOpen: false, // whether the nav drawer (hamburger menu) is currently open
 };
 
 /* ---------------- persistence ----------------
@@ -358,14 +356,15 @@ const VIEWS = [
   { key: "footer",   label: "פוטר",    icon: "anchor"  },
 ];
 
-let $previewFrame = null, $content = null, $statsEl = null, $rail = null;
+let $previewFrame = null, $content = null, $statsEl = null, $rail = null, $navScrim = null;
 
 function renderDeck() {
   const site = state.site;
   $status = el("div", { class: "chip" });
 
-  /* rail */
-  $rail = el("aside", { class: "rail" });
+  /* nav drawer (animated slide-out menu, not a persistent sidebar) + its scrim */
+  $navScrim = el("div", { class: "nav-scrim", onclick: closeNav });
+  $rail = el("aside", { class: "nav-drawer" });
   buildRail();
 
   /* topline */
@@ -379,9 +378,8 @@ function renderDeck() {
   const currentViewLabel = VIEWS.find((v) => v.key === state.view)?.label || "";
   const topline = el("div", { class: "topline" },
     el("button", {
-      class: "rail-collapse-btn", title: state.railCollapsed ? "פתיחת סרגל צד" : "כיווץ סרגל צד",
-      onclick: () => { state.railCollapsed = !state.railCollapsed; buildRail(); },
-    }, icon(state.railCollapsed ? "panelOpen" : "panelClose")),
+      class: "nav-open-btn", title: "תפריט", "aria-label": "פתיחת תפריט", onclick: openNav,
+    }, icon("menu")),
     el("span", { class: "crumb" },
       el("span", { class: "crumb-root" }, site.brand?.name || SITE_ID),
       el("span", { class: "crumb-sep" }, "/"),
@@ -417,16 +415,64 @@ function renderDeck() {
     vpBar, el("div", { class: "vp-frame" }, el("iframe", { title: "preview" })));
   $previewFrame = viewport.querySelector("iframe");
 
-  $app.replaceChildren(el("div", { class: "deck" }, $rail, stage, viewport));
+  $app.replaceChildren(el("div", { class: "deck" }, stage, viewport), $navScrim, $rail);
   renderView();
   refreshStats();
   if (previewOn) refreshPreview();
 }
 
+/* ---------------- nav drawer open/close + drag-to-close ----------------
+ * The CMS's whole navigation lives in an animated slide-out drawer
+ * (triggered by the hamburger button in the topline) rather than a
+ * permanently-docked sidebar — opens over the content with a scrim,
+ * supports drag-to-close, and staggers its items in on open. */
+function openNav() {
+  state.navOpen = true;
+  $rail.classList.add("open");
+  $navScrim.classList.add("open");
+}
+function closeNav() {
+  state.navOpen = false;
+  $rail.classList.remove("open");
+  $navScrim.classList.remove("open");
+}
+function wireNavDrag() {
+  const handle = $rail.querySelector(".nav-drag-handle");
+  if (!handle) return;
+  let startX = 0, dx = 0, dragging = false;
+  const onMove = (e) => {
+    dragging = true;
+    dx = Math.max(0, e.clientX - startX); // RTL drawer: dragging further right closes it
+    $rail.style.transition = "none";
+    $rail.style.transform = `translateX(${dx}px)`;
+  };
+  const onUp = () => {
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerup", onUp);
+    $rail.style.transition = "";
+    $rail.style.transform = "";
+    if (dragging && dx > 90) closeNav();
+    dragging = false; dx = 0;
+  };
+  handle.addEventListener("pointerdown", (e) => {
+    startX = e.clientX;
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+  });
+}
+
 function buildRail() {
   const site = state.site;
-  $rail.classList.toggle("collapsed", state.railCollapsed);
   $rail.replaceChildren();
+  let stagger = 0; // per-item transition-delay index, for the staggered slide-in
+
+  /* drag handle strip along the drawer's inner edge (drag toward the
+     edge — i.e. further into the page — to close, mirroring the
+     reference component's "drag to close" affordance) */
+  $rail.append(el("div", { class: "nav-drag-handle", title: "גררו לסגירה" }));
+
+  /* close button */
+  $rail.append(el("button", { class: "nav-close-btn", "aria-label": "סגירת תפריט", onclick: closeNav }, "✕"));
 
   /* workspace header — brand avatar + name, mirrors a workspace switcher */
   const name = site?.brand?.name || SITE_ID || "האתר שלי";
@@ -442,8 +488,9 @@ function buildRail() {
   for (const v of VIEWS) {
     navGroup.append(el("button", {
       class: "rail-btn" + (state.view === v.key ? " on" : ""),
+      style: `--i:${stagger++}`,
       title: v.label,
-      onclick: () => { state.view = v.key; buildRail(); renderView(); },
+      onclick: () => { state.view = v.key; buildRail(); renderView(); closeNav(); },
     }, icon(v.icon), el("span", {}, v.label)));
   }
   $rail.append(navGroup);
@@ -453,6 +500,7 @@ function buildRail() {
   viewGroup.append(el("div", { class: "rail-heading" }, "תצוגה"));
   viewGroup.append(el("button", {
     class: "rail-btn" + (previewOn ? " on" : ""),
+    style: `--i:${stagger++}`,
     title: "תצוגה חיה",
     onclick: togglePreview,
   }, icon("eye"), el("span", {}, "תצוגה חיה")));
@@ -462,13 +510,17 @@ function buildRail() {
 
   /* bottom-pinned: guide + logout, mirrors settings/log-out convention */
   const bottom = el("div", { class: "rail-bottom" });
-  bottom.append(el("button", { class: "rail-btn", title: "מדריך למשתמש", onclick: showGuide },
-    icon("book"), el("span", {}, "מדריך למשתמש")));
   bottom.append(el("button", {
-    class: "rail-btn rail-btn-danger", title: state.user?.email || "",
+    class: "rail-btn", style: `--i:${stagger++}`, title: "מדריך למשתמש",
+    onclick: () => { showGuide(); closeNav(); },
+  }, icon("book"), el("span", {}, "מדריך למשתמש")));
+  bottom.append(el("button", {
+    class: "rail-btn rail-btn-danger", style: `--i:${stagger++}`, title: state.user?.email || "",
     onclick: async () => { await signOut(); state.user = null; boot(); },
   }, icon("logout"), el("span", {}, L.logout)));
   $rail.append(bottom);
+
+  wireNavDrag();
 }
 
 function setDevice(btn, mobile) {
