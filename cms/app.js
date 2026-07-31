@@ -127,6 +127,7 @@ function setStatus(msg, kind = "") {
 
 /* ---------------- auth screen ---------------- */
 let authMode = "signin"; // "signin" | "signup"
+let pendingBrandName = null; // business name entered at signup, applied to the fresh starter site in boot()
 function renderAuth(errMsg) {
   if (!supabaseReady) {
     $app.replaceChildren(el("div", { class: "login-wrap" },
@@ -138,6 +139,7 @@ function renderAuth(errMsg) {
 
   const email = el("input", { type: "email", autofocus: true, autocomplete: "email" });
   const pw = el("input", { type: "password", autocomplete: authMode === "signup" ? "new-password" : "current-password" });
+  const bizName = el("input", { type: "text", autocomplete: "organization", placeholder: "לדוגמה: קפה הפינה" });
   const msg = el("p", { class: "chip err", style: "margin-top:8px" }, errMsg || "");
 
   const signinTab = el("button", { type: "button", class: authMode === "signin" ? "on" : "" }, L.signin);
@@ -155,6 +157,13 @@ function renderAuth(errMsg) {
       msg.textContent = "";
       submitBtn.disabled = true;
       try {
+        if (authMode === "signup" && !bizName.value.trim()) {
+          msg.className = "chip err";
+          msg.textContent = "נא למלא את שם העסק.";
+          submitBtn.disabled = false;
+          bizName.focus();
+          return;
+        }
         const fn = authMode === "signup" ? signUp : signIn;
         const { data, error } = await fn(email.value.trim(), pw.value);
         if (error) throw error;
@@ -165,6 +174,7 @@ function renderAuth(errMsg) {
           submitBtn.disabled = false;
           return;
         }
+        if (authMode === "signup") pendingBrandName = bizName.value.trim();
         await boot();
       } catch (err) {
         msg.className = "chip err";
@@ -174,6 +184,11 @@ function renderAuth(errMsg) {
     },
   },
     tabs,
+    authMode === "signup"
+      ? el("div", {},
+          el("label", { style: "font-size:.78rem;color:var(--ink-2)" }, L.brand_name),
+          bizName)
+      : null,
     el("label", { style: "font-size:.78rem;color:var(--ink-2)" }, L.email),
     email,
     el("label", { style: "font-size:.78rem;color:var(--ink-2)" }, L.password),
@@ -224,6 +239,11 @@ async function boot() {
       // customer's site could pick up that customer's content by mistake.
       // Every new account must start from the same blank starter, full stop.)
       state.site = await loadStarter();
+      if (pendingBrandName) {
+        state.site.brand = state.site.brand || {};
+        state.site.brand.name = pendingBrandName;
+        pendingBrandName = null;
+      }
       await upsertSite(state.user.id, state.site);
     }
 
