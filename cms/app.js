@@ -48,6 +48,8 @@ const ICON = {
   undo:    "M8.5 4.5 4 9l4.5 4.5M4 9h8a5 5 0 0 1 0 10h-2",
   book:    "M10 5.5C8.5 4.3 6 4 3.5 4.5v10.5c2.5-.5 5-.2 6.5 1V5.5zM10 5.5c1.5-1.2 4-1.5 6.5-1v10.5c-2.5-.5-5-.2-6.5 1V5.5z",
   logout:  "M8 17.5H4.5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1H8M13 13.5l3.5-3.5-3.5-3.5M16.2 10H7.5",
+  sun:     "M10 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM10 2v2M10 16v2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M2 10h2M16 10h2M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4",
+  moon:    "M16.5 12.3A6.8 6.8 0 0 1 7.7 3.5a7 7 0 1 0 8.8 8.8z",
 };
 function icon(name, cls = "") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -72,7 +74,26 @@ const state = {
   user: null, // { id, email } once signed in via Supabase
   view: "sections",
   navOpen: false, // whether the nav drawer (hamburger menu) is currently open
+  darkMode: false,
 };
+
+/* ---------------- theme (light/dark) ----------------
+ * Applied as early as possible (module load, before boot()/first render)
+ * so there's no flash of the wrong theme. Persisted per-browser — this is
+ * a display preference, not site content, so it isn't synced to Supabase. */
+const THEME_KEY = "cms-theme";
+try { state.darkMode = localStorage.getItem(THEME_KEY) === "dark"; } catch {}
+document.documentElement.classList.toggle("dark", state.darkMode);
+function toggleTheme() {
+  state.darkMode = !state.darkMode;
+  try { localStorage.setItem(THEME_KEY, state.darkMode ? "dark" : "light"); } catch {}
+  document.documentElement.classList.toggle("dark", state.darkMode);
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn) {
+    btn.replaceChildren(icon(state.darkMode ? "sun" : "moon"));
+    btn.title = state.darkMode ? "מצב בהיר" : "מצב כהה";
+  }
+}
 
 /* ---------------- persistence ----------------
  * The Supabase `sites` row (keyed by user_id) is the source of truth.
@@ -388,6 +409,10 @@ function renderDeck() {
     cmd,
     el("span", { class: "sp" }),
     $status,
+    el("button", {
+      id: "themeToggleBtn", class: "btn btn-sm btn-icon", onclick: toggleTheme,
+      title: state.darkMode ? "מצב בהיר" : "מצב כהה",
+    }, icon(state.darkMode ? "sun" : "moon")),
     el("button", { class: "btn btn-sm", onclick: importFromFile, title: "טעינת אתר קיים" }, "ייבוא"),
     el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
     el("button", { class: "btn btn-sm btn-icon", onclick: undoLast, title: "ביטול השינוי האחרון (מחיקות/עריכות)", "aria-label": "ביטול השינוי האחרון" }, icon("undo")));
@@ -1266,13 +1291,64 @@ async function togglePreview() {
   buildRail();
   if (previewOn) await refreshPreview();
 }
+/* Click-to-edit overlay injected ONLY into the CMS's own live-preview iframe
+ * (never into the real published/downloaded HTML — buildHtml() is a
+ * completely separate code path that never sees this). Lets the owner click
+ * any section/header/footer directly in the preview and jump straight to
+ * its editor, instead of hunting for it in the nav drawer. */
+const PREVIEW_EDIT_OVERLAY = `
+<style>
+  .cms-editable{outline:2px dashed transparent;outline-offset:-2px;cursor:pointer;position:relative;transition:outline-color .12s,background-color .12s}
+  .cms-editable:hover{outline-color:#3D8BFF;background-color:rgba(61,139,255,.06)}
+  .cms-edit-badge{position:absolute;top:8px;inset-inline-end:8px;z-index:99999;background:#18181B;color:#fff;
+    font:600 11px/1 "Heebo",system-ui,sans-serif;padding:6px 10px;border-radius:999px;pointer-events:none;
+    opacity:0;transition:opacity .12s;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .cms-editable:hover .cms-edit-badge{opacity:1}
+</style>
+<script>
+(function(){
+  if (window.top === window) return; // safety: only activates when embedded
+  function mark(elm, label, msg){
+    if (!elm) return;
+    elm.classList.add("cms-editable");
+    var b = document.createElement("div");
+    b.className = "cms-edit-badge"; b.textContent = label;
+    elm.appendChild(b);
+    elm.addEventListener("click", function(e){
+      e.preventDefault(); e.stopPropagation();
+      window.parent.postMessage(Object.assign({ source: "cms-preview" }, msg), "*");
+    }, true);
+  }
+  document.querySelectorAll("main > section[id]").forEach(function(sec){
+    mark(sec, "✎ לחצו לעריכה", { type: "edit-section", id: sec.id });
+  });
+  mark(document.querySelector(".site-header"), "✎ עריכת התפריט העליון", { type: "edit-nav" });
+  mark(document.querySelector(".site-footer"), "✎ עריכת הפוטר", { type: "edit-footer" });
+})();
+<\/script>`;
+
+window.addEventListener("message", (e) => {
+  if (!$previewFrame || e.source !== $previewFrame.contentWindow) return;
+  const d = e.data;
+  if (!d || d.source !== "cms-preview") return;
+  if (d.type === "edit-section") editSectionById(d.id);
+  else if (d.type === "edit-nav") { state.view = "nav"; buildRail(); renderView(); }
+  else if (d.type === "edit-footer") { state.view = "footer"; buildRail(); renderView(); }
+});
+function editSectionById(id) {
+  const s = (state.site.sections || []).find((x) => x.id === id);
+  if (!s) return;
+  state.view = "sections"; buildRail(); renderView();
+  openSectionDrawer(s, () => renderView());
+}
+
 async function refreshPreview() {
   if (!$previewFrame) return;
   try {
     const [{ render }, tplRes] = await Promise.all([import("../render.mjs"), fetch(templateUrl())]);
     if (!tplRes.ok) throw new Error("template " + tplRes.status);
     const template = await tplRes.text();
-    const html = render(state.site, template);
+    const html = render(state.site, template).replace("</body>", PREVIEW_EDIT_OVERLAY + "</body>");
     const mapped = state.user && ASSET_BASE_MAP[state.user.id];
     const assetBase = mapped || (() => {
       const base = new URL(templateUrl());

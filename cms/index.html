@@ -51,8 +51,48 @@
   --mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* ─── Dark mode (manual toggle, not OS-driven) ───────────────
+   Same token names, dark values — every component below reads these
+   vars, so no component CSS needs its own dark-mode override. The
+   accent flips from near-black to a blue (Flight-Deck-era hue) since
+   near-black on a dark canvas would be invisible for hover/active tints. */
+html.dark {
+  --canvas:    #0B0B0D;
+  --surface:   #17171A;
+  --raised:    #1F1F23;
+  --raised-2:  #26262B;
+
+  --hair:      rgba(255,255,255,.08);
+  --hair-2:    rgba(255,255,255,.14);
+
+  --ink:       #EDEDF0;
+  --ink-2:     #9A9AA5;
+  --ink-3:     #6B6B76;
+
+  --blue:      #3D8BFF;
+  --blue-dim:  rgba(61,139,255,.14);
+  --blue-line: rgba(61,139,255,.35);
+
+  --amber:     #E8A33D;
+  --amber-dim: rgba(232,163,61,.14);
+  --amber-line:rgba(232,163,61,.35);
+
+  --green:     #46B87A;
+  --green-dim: rgba(70,184,122,.14);
+  --red:       #E5766D;
+  --red-dim:   rgba(229,118,109,.14);
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 20px rgba(0,0,0,.5);
+
+  color-scheme: dark;
+}
+html.dark .field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%239A9AA5' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { color-scheme: light; height: 100%; }
+html { color-scheme: light; height: 100%; transition: background-color .2s; }
 body {
   background: var(--canvas);
   color: var(--ink);
