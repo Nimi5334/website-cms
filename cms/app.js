@@ -46,6 +46,7 @@ const ICON = {
   upload:  "M10 13V3.5M6.5 7 10 3.5 13.5 7M3.5 13v2.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V13",
   search:  "M9 15A6 6 0 1 0 9 3a6 6 0 0 0 0 12zM17 17l-3.7-3.7",
   undo:    "M8.5 4.5 4 9l4.5 4.5M4 9h8a5 5 0 0 1 0 10h-2",
+  book:    "M10 5.5C8.5 4.3 6 4 3.5 4.5v10.5c2.5-.5 5-.2 6.5 1V5.5zM10 5.5c1.5-1.2 4-1.5 6.5-1v10.5c-2.5-.5-5-.2-6.5 1V5.5z",
 };
 function icon(name, cls = "") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -312,6 +313,38 @@ function showVersions() {
   document.body.append(scrim, modal);
 }
 
+/* ---------------- user guide ---------------- */
+const GUIDE_SECTIONS = [
+  { icon: "layers",  title: "אזורי תוכן", body: "כאן בונים את הדף עצמו: לחצו על שורה כדי לפתוח עורך בצד ולערוך את התוכן שלה. \"הוספת אזור\" מוסיפה סוג תוכן חדש (תפריט, גלריה, סניפים ועוד). שכפול, מחיקה, הצגה/הסתרה והזזה למעלה/למטה זמינים דרך תפריט ⋯ שבכל שורה." },
+  { icon: "home",    title: "כללי", body: "שם העסק, לוגו, כותרת הדף וה־favicon — הגדרות בסיס שמופיעות בכל האתר ובלשונית הדפדפן." },
+  { icon: "palette", title: "עיצוב", body: "צבעי המותג, הגופנים, עיגול הפינות ותמונת הרקע לכל האתר נקבעים כאן. שינוי כאן משפיע מיידית על כל הדף." },
+  { icon: "menu",    title: "תפריט עליון", body: "הקישורים שמופיעים בסרגל הניווט העליון וכפתור הפעולה הראשי (CTA) שלצידם." },
+  { icon: "anchor",  title: "פוטר", body: "לוגו תחתון, קישורים לרשתות חברתיות, זכויות יוצרים וטקסט נוסף שמופיעים בתחתית כל עמוד." },
+  { icon: "eye",     title: "תצוגה מקדימה", body: "בצד שמאל רואים תצוגה חיה של האתר בזמן אמת, מתעדכנת תוך כדי עריכה. אפשר לעבור בין תצוגת מחשב לנייד בכפתורים שמעל התצוגה." },
+  { icon: "undo",    title: "ביטול והיסטוריה", body: "כל שינוי — כולל מחיקות — נשמר אוטומטית כגרסה. כפתור החץ מבטל מהר את הפעולה האחרונה, וכפתור \"היסטוריה\" מציג את כל הגרסאות השמורות לשחזור מלא." },
+  { icon: "upload",  title: "פרסום ושמירה", body: "השינויים נשמרים אוטומטית לחשבון שלכם תוך כדי עריכה. \"פרסום לאינטרנט\" מעלה את הגרסה הנוכחית לאתר החי; \"הורדת קובץ\" שומרת עותק מקומי (HTML עצמאי) למחשב." },
+];
+
+function showGuide() {
+  const scrim = el("div", { class: "scrim", onclick: close });
+  function close() { scrim.remove(); modal.remove(); }
+  const grid = el("div", { class: "guide-grid" });
+  GUIDE_SECTIONS.forEach((g) => {
+    grid.append(el("div", { class: "guide-item" },
+      el("div", { class: "guide-ico" }, icon(g.icon)),
+      el("div", {},
+        el("div", { class: "guide-title" }, g.title),
+        el("div", { class: "guide-body" }, g.body))));
+  });
+  const modal = el("div", { class: "modal modal-lg" },
+    el("div", { class: "modal-head" }, el("span", {}, "מדריך למשתמש — איך בונים אתר"),
+      el("button", { class: "btn btn-sm", onclick: close }, "סגירה")),
+    el("div", { class: "guide-wrap" },
+      el("p", { class: "guide-intro" }, "המערכת בנויה מ־5 לשוניות בסרגל הצד. כל שינוי נשמר אוטומטית ואפשר לבטל כל פעולה בכל שלב — אפשר להתנסות בלי חשש."),
+      grid));
+  document.body.append(scrim, modal);
+}
+
 /* ---------------- deck shell ---------------- */
 const VIEWS = [
   { key: "sections", label: "אזורים",  icon: "layers"  },
@@ -345,6 +378,7 @@ function renderDeck() {
     cmd,
     el("span", { class: "sp" }),
     $status,
+    el("button", { class: "btn btn-sm", onclick: showGuide, title: "מדריך למשתמש" }, icon("book"), "מדריך"),
     el("button", { class: "btn btn-sm", onclick: importFromFile, title: "טעינת אתר קיים" }, "ייבוא"),
     el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
     el("button", { class: "btn btn-sm btn-icon", onclick: undoLast, title: "ביטול השינוי האחרון (מחיקות/עריכות)", "aria-label": "ביטול השינוי האחרון" }, icon("undo")),

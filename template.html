@@ -315,6 +315,72 @@ section{padding:clamp(64px,9vw,110px) 0;position:relative}
 #toTop.show{opacity:1;visibility:visible;transform:translateY(0);transition-delay:0s}
 #toTop:hover{background:var(--sage-deep)}
 
+/* ============ Accessibility widget ============ */
+#a11yBtn{
+  position:fixed;bottom:24px;right:24px;z-index:95;width:50px;height:50px;border-radius:50%;
+  background:var(--sage-dark);color:#fff;border:0;cursor:pointer;box-shadow:var(--shadow-2);
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--dur-1),transform var(--dur-1) var(--ease-out);
+}
+#a11yBtn:hover{background:var(--sage-deep);transform:translateY(-2px)}
+#a11yBtn[aria-expanded="true"]{background:var(--sage-deep)}
+.a11y-panel{
+  position:fixed;bottom:84px;right:24px;z-index:96;width:min(300px,calc(100vw - 32px));
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow-2);padding:18px;
+  opacity:0;visibility:hidden;transform:translateY(10px);
+  transition:opacity var(--dur-2),transform var(--dur-2) var(--ease-out),visibility 0s linear var(--dur-2);
+}
+.a11y-panel.open{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.a11y-panel h2{font-size:1.05rem;font-weight:800;margin-bottom:4px}
+.a11y-panel .a11y-sub{color:var(--ink-soft);font-size:.82rem;margin-bottom:14px;line-height:1.5}
+.a11y-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.a11y-row:first-of-type{border-top:0}
+.a11y-row span{font-size:.92rem;font-weight:600}
+.a11y-controls{display:flex;gap:6px}
+.a11y-controls button{
+  min-width:36px;min-height:36px;border-radius:8px;border:1.5px solid var(--line);background:transparent;
+  color:var(--ink);font-weight:700;font-size:.85rem;cursor:pointer;
+  transition:background var(--dur-1),border-color var(--dur-1);
+}
+.a11y-controls button:hover{border-color:var(--sage);background:rgba(121,165,167,.12)}
+.a11y-toggle{
+  position:relative;width:42px;height:24px;border-radius:999px;border:1.5px solid var(--line);
+  background:var(--bg-deep);cursor:pointer;flex-shrink:0;transition:background var(--dur-1),border-color var(--dur-1);
+}
+.a11y-toggle::after{
+  content:"";position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;
+  background:var(--ink-soft);transition:transform var(--dur-1) var(--ease-out),background var(--dur-1);
+}
+.a11y-toggle[aria-checked="true"]{background:var(--sage-dark);border-color:var(--sage-dark)}
+.a11y-toggle[aria-checked="true"]::after{transform:translateX(-18px);background:#fff}
+.a11y-reset{
+  width:100%;margin-top:14px;padding:10px;border-radius:8px;border:1.5px solid var(--line);
+  background:transparent;color:var(--ink-soft);font-size:.85rem;font-weight:600;cursor:pointer;
+  transition:border-color var(--dur-1),color var(--dur-1);
+}
+.a11y-reset:hover{border-color:var(--sage);color:var(--sage-dark)}
+
+/* High-contrast mode overrides the design tokens directly, so every
+   component (already themed with var(--ink)/var(--sage-dark)/etc.) picks
+   it up automatically without needing per-component overrides. */
+html.a11y-contrast{
+  --bg:#ffffff;--bg-deep:#ffffff;--surface:#ffffff;--ink:#000000;--ink-soft:#000000;
+  --line:#000000;--sage:#0047ab;--sage-deep:#0047ab;--sage-dark:#0047ab;--olive:#0047ab;
+}
+html.a11y-contrast img,html.a11y-contrast video{filter:grayscale(.15) contrast(1.05)}
+html.a11y-readable{--font-body:Arial,Helvetica,sans-serif;--font-head:Arial,Helvetica,sans-serif}
+html.a11y-underline a{text-decoration:underline !important;text-underline-offset:2px}
+html.a11y-nomotion *,html.a11y-nomotion *::before,html.a11y-nomotion *::after{
+  animation:none !important;transition:none !important;
+}
+html.a11y-nomotion .reveal{opacity:1;transform:none}
+
+@media (max-width:480px){
+  .a11y-panel{right:16px;left:16px;width:auto;bottom:80px}
+  #a11yBtn{right:16px}
+}
+
 /* ============ Reveal animations ============ */
 .reveal{opacity:0;transform:translateY(26px);transition:opacity var(--dur-3) var(--ease-out),transform var(--dur-3) var(--ease-out)}
 .reveal.in{opacity:1;transform:none}
@@ -361,6 +427,47 @@ section{padding:clamp(64px,9vw,110px) 0;position:relative}
 <button id="toTop" aria-label="חזרה לראש הדף">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>
 </button>
+
+<!-- ============ Accessibility widget ============ -->
+<button id="a11yBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="a11yPanel" aria-label="פתיחת תפריט נגישות">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10"/>
+    <circle cx="12" cy="7.4" r="1.5" fill="currentColor" stroke="none"/>
+    <path d="M7 10.4c1.6.55 3.3.85 5 .85s3.4-.3 5-.85"/>
+    <path d="M12 11.25v3M12 14.25l-2.6 4.3M12 14.25l2.6 4.3"/>
+  </svg>
+</button>
+
+<div class="a11y-panel" id="a11yPanel" role="dialog" aria-modal="false" aria-label="הגדרות נגישות">
+  <h2>נגישות</h2>
+  <p class="a11y-sub">התאימו את התצוגה לצרכים שלכם. ההגדרות נשמרות בדפדפן הזה בלבד.</p>
+
+  <div class="a11y-row">
+    <span>גודל טקסט</span>
+    <div class="a11y-controls">
+      <button type="button" id="a11yFontMinus" aria-label="הקטנת טקסט">A-</button>
+      <button type="button" id="a11yFontPlus" aria-label="הגדלת טקסט">A+</button>
+    </div>
+  </div>
+  <div class="a11y-row">
+    <span>ניגודיות גבוהה</span>
+    <button type="button" class="a11y-toggle" id="a11yContrast" role="switch" aria-checked="false" aria-label="הפעלת ניגודיות גבוהה"></button>
+  </div>
+  <div class="a11y-row">
+    <span>הדגשת קישורים</span>
+    <button type="button" class="a11y-toggle" id="a11yUnderline" role="switch" aria-checked="false" aria-label="הדגשת קישורים"></button>
+  </div>
+  <div class="a11y-row">
+    <span>פונט קריא</span>
+    <button type="button" class="a11y-toggle" id="a11yReadable" role="switch" aria-checked="false" aria-label="החלפה לפונט קריא"></button>
+  </div>
+  <div class="a11y-row">
+    <span>עצירת אנימציות</span>
+    <button type="button" class="a11y-toggle" id="a11yMotion" role="switch" aria-checked="false" aria-label="עצירת אנימציות"></button>
+  </div>
+
+  <button type="button" class="a11y-reset" id="a11yReset">איפוס כל ההגדרות</button>
+</div>
 
 <script>
 (function(){
@@ -586,6 +693,79 @@ section{padding:clamp(64px,9vw,110px) 0;position:relative}
   }
   updateStatus();
   setInterval(updateStatus, 60000);
+
+  /* Accessibility widget: font scale, high contrast, underlined links,
+     a readable font swap, and a motion killswitch — persisted per-browser
+     via localStorage so a visitor's preference sticks across pages/visits. */
+  (function(){
+    var KEY = "a11y-prefs-v1";
+    var root = document.documentElement;
+    var btn = document.getElementById("a11yBtn");
+    var panel = document.getElementById("a11yPanel");
+    if(!btn || !panel) return;
+
+    var FONT_STEPS = [100,112,125,137,150];
+    var defaults = {fontStep:0, contrast:false, underline:false, readable:false, nomotion:false};
+    var prefs;
+    try{ prefs = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY) || "{}")); }
+    catch(e){ prefs = Object.assign({}, defaults); }
+
+    function save(){ try{ localStorage.setItem(KEY, JSON.stringify(prefs)); }catch(e){} }
+    function setSwitch(el, on){ if(el) el.setAttribute("aria-checked", on ? "true" : "false"); }
+
+    var contrastBtn = document.getElementById("a11yContrast");
+    var underlineBtn = document.getElementById("a11yUnderline");
+    var readableBtn = document.getElementById("a11yReadable");
+    var motionBtn = document.getElementById("a11yMotion");
+    var fontMinus = document.getElementById("a11yFontMinus");
+    var fontPlus = document.getElementById("a11yFontPlus");
+    var resetBtn = document.getElementById("a11yReset");
+
+    function applyAll(){
+      root.style.fontSize = FONT_STEPS[prefs.fontStep] + "%";
+      root.classList.toggle("a11y-contrast", !!prefs.contrast);
+      root.classList.toggle("a11y-underline", !!prefs.underline);
+      root.classList.toggle("a11y-readable", !!prefs.readable);
+      root.classList.toggle("a11y-nomotion", !!prefs.nomotion);
+      setSwitch(contrastBtn, prefs.contrast);
+      setSwitch(underlineBtn, prefs.underline);
+      setSwitch(readableBtn, prefs.readable);
+      setSwitch(motionBtn, prefs.nomotion);
+    }
+
+    fontMinus.addEventListener("click", function(){ prefs.fontStep = Math.max(0, prefs.fontStep - 1); save(); applyAll(); });
+    fontPlus.addEventListener("click", function(){ prefs.fontStep = Math.min(FONT_STEPS.length - 1, prefs.fontStep + 1); save(); applyAll(); });
+    contrastBtn.addEventListener("click", function(){ prefs.contrast = !prefs.contrast; save(); applyAll(); });
+    underlineBtn.addEventListener("click", function(){ prefs.underline = !prefs.underline; save(); applyAll(); });
+    readableBtn.addEventListener("click", function(){ prefs.readable = !prefs.readable; save(); applyAll(); });
+    motionBtn.addEventListener("click", function(){ prefs.nomotion = !prefs.nomotion; save(); applyAll(); });
+    resetBtn.addEventListener("click", function(){ prefs = Object.assign({}, defaults); save(); applyAll(); });
+
+    function onDocClick(e){
+      if(panel.contains(e.target) || btn.contains(e.target)) return;
+      closePanel();
+    }
+    function onKeydown(e){
+      if(e.key === "Escape"){ closePanel(); btn.focus(); }
+    }
+    function openPanel(){
+      panel.classList.add("open");
+      btn.setAttribute("aria-expanded", "true");
+      document.addEventListener("click", onDocClick, true);
+      document.addEventListener("keydown", onKeydown, true);
+    }
+    function closePanel(){
+      panel.classList.remove("open");
+      btn.setAttribute("aria-expanded", "false");
+      document.removeEventListener("click", onDocClick, true);
+      document.removeEventListener("keydown", onKeydown, true);
+    }
+    btn.addEventListener("click", function(){
+      if(panel.classList.contains("open")) closePanel(); else openPanel();
+    });
+
+    applyAll();
+  })();
 })();
 </script>
 </body>
