@@ -47,6 +47,9 @@ const ICON = {
   search:  "M9 15A6 6 0 1 0 9 3a6 6 0 0 0 0 12zM17 17l-3.7-3.7",
   undo:    "M8.5 4.5 4 9l4.5 4.5M4 9h8a5 5 0 0 1 0 10h-2",
   book:    "M10 5.5C8.5 4.3 6 4 3.5 4.5v10.5c2.5-.5 5-.2 6.5 1V5.5zM10 5.5c1.5-1.2 4-1.5 6.5-1v10.5c-2.5-.5-5-.2-6.5 1V5.5z",
+  logout:  "M8 17.5H4.5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1H8M13 13.5l3.5-3.5-3.5-3.5M16.2 10H7.5",
+  panelClose: "M4 4.5h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM8 4.5v11M13.5 8l-2 2 2 2",
+  panelOpen:  "M4 4.5h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zM8 4.5v11M12 8l2 2-2 2",
 };
 function icon(name, cls = "") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -70,6 +73,7 @@ const state = {
   busy: false,
   user: null, // { id, email } once signed in via Supabase
   view: "sections",
+  railCollapsed: false,
 };
 
 /* ---------------- persistence ----------------
@@ -372,20 +376,23 @@ function renderDeck() {
   search.addEventListener("focus", () => { if (search.value) runSearch(search.value, results); });
   const cmd = el("div", { class: "cmd" }, icon("search"), search, results);
 
+  const currentViewLabel = VIEWS.find((v) => v.key === state.view)?.label || "";
   const topline = el("div", { class: "topline" },
-    el("span", { class: "brandline" }, el("b", {}, "•"), " ", site.brand?.name || SITE_ID),
+    el("button", {
+      class: "rail-collapse-btn", title: state.railCollapsed ? "פתיחת סרגל צד" : "כיווץ סרגל צד",
+      onclick: () => { state.railCollapsed = !state.railCollapsed; buildRail(); },
+    }, icon(state.railCollapsed ? "panelOpen" : "panelClose")),
+    el("span", { class: "crumb" },
+      el("span", { class: "crumb-root" }, site.brand?.name || SITE_ID),
+      el("span", { class: "crumb-sep" }, "/"),
+      el("span", { class: "crumb-leaf" }, currentViewLabel)),
     el("span", { class: "sp" }),
     cmd,
     el("span", { class: "sp" }),
     $status,
-    el("button", { class: "btn btn-sm", onclick: showGuide, title: "מדריך למשתמש" }, icon("book"), "מדריך"),
     el("button", { class: "btn btn-sm", onclick: importFromFile, title: "טעינת אתר קיים" }, "ייבוא"),
     el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
-    el("button", { class: "btn btn-sm btn-icon", onclick: undoLast, title: "ביטול השינוי האחרון (מחיקות/עריכות)", "aria-label": "ביטול השינוי האחרון" }, icon("undo")),
-    el("button", {
-      class: "btn btn-sm btn-logout", title: state.user?.email || "",
-      onclick: async () => { await signOut(); state.user = null; boot(); },
-    }, L.logout));
+    el("button", { class: "btn btn-sm btn-icon", onclick: undoLast, title: "ביטול השינוי האחרון (מחיקות/עריכות)", "aria-label": "ביטול השינוי האחרון" }, icon("undo")));
 
   /* stats */
   $statsEl = el("div", { class: "stats" });
@@ -417,18 +424,51 @@ function renderDeck() {
 }
 
 function buildRail() {
-  $rail.replaceChildren(el("div", { class: "rail-mark" }, "ניהול"));
+  const site = state.site;
+  $rail.classList.toggle("collapsed", state.railCollapsed);
+  $rail.replaceChildren();
+
+  /* workspace header — brand avatar + name, mirrors a workspace switcher */
+  const name = site?.brand?.name || SITE_ID || "האתר שלי";
+  $rail.append(el("div", { class: "rail-header" },
+    el("div", { class: "rail-avatar" }, (name || "?").trim().charAt(0) || "?"),
+    el("div", { class: "rail-header-txt" },
+      el("span", { class: "rail-header-name" }, name),
+      el("span", { class: "rail-header-sub" }, "עריכת אתר"))));
+
+  /* main nav group */
+  const navGroup = el("div", { class: "rail-group" });
+  navGroup.append(el("div", { class: "rail-heading" }, "עריכה"));
   for (const v of VIEWS) {
-    $rail.append(el("button", {
+    navGroup.append(el("button", {
       class: "rail-btn" + (state.view === v.key ? " on" : ""),
+      title: v.label,
       onclick: () => { state.view = v.key; buildRail(); renderView(); },
     }, icon(v.icon), el("span", {}, v.label)));
   }
-  $rail.append(el("div", { class: "rail-sep" }));
-  $rail.append(el("button", {
+  $rail.append(navGroup);
+
+  /* preview group */
+  const viewGroup = el("div", { class: "rail-group" });
+  viewGroup.append(el("div", { class: "rail-heading" }, "תצוגה"));
+  viewGroup.append(el("button", {
     class: "rail-btn" + (previewOn ? " on" : ""),
+    title: "תצוגה חיה",
     onclick: togglePreview,
-  }, icon("eye"), el("span", {}, "תצוגה")));
+  }, icon("eye"), el("span", {}, "תצוגה חיה")));
+  $rail.append(viewGroup);
+
+  $rail.append(el("div", { class: "rail-sep" }));
+
+  /* bottom-pinned: guide + logout, mirrors settings/log-out convention */
+  const bottom = el("div", { class: "rail-bottom" });
+  bottom.append(el("button", { class: "rail-btn", title: "מדריך למשתמש", onclick: showGuide },
+    icon("book"), el("span", {}, "מדריך למשתמש")));
+  bottom.append(el("button", {
+    class: "rail-btn rail-btn-danger", title: state.user?.email || "",
+    onclick: async () => { await signOut(); state.user = null; boot(); },
+  }, icon("logout"), el("span", {}, L.logout)));
+  $rail.append(bottom);
 }
 
 function setDevice(btn, mobile) {
