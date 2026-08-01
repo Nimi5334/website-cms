@@ -180,10 +180,10 @@ function renderHero(s, site) {
   const branches = locationBranches(site);
   const ctas = (d.ctas || [])
     .map(
-      (c) =>
+      (c, i) =>
         `      <a class="btn btn-${c.style === "ghost" ? "ghost" : "primary"}" href="${escAttr(
           c.href
-        )}">${esc(c.label)}</a>`
+        )}" data-field="ctas[${i}].label" data-field-label="כפתור #${i + 1}">${esc(c.label)}</a>`
     )
     .join("\n");
   const chips = branches.map((b) => "      " + statusChip(b)).join("\n");
@@ -330,12 +330,12 @@ function renderLocations(s) {
         .map((r) => `            <tr><td>${esc(r.label)}</td><td>${esc(r.time)}</td></tr>`)
         .join("\n");
       const waze = `https://waze.com/ul?ll=${(b.waze || {}).lat},${(b.waze || {}).lng}&navigate=yes`;
-      return `      <article class="loc-card reveal">
+      return `      <article class="loc-card reveal" data-branch-id="${escAttr(b.id)}">
         <div class="loc-head">
-          <h3>${esc(b.name)}</h3>
+          <h3 data-field="branches[${d.branches.indexOf(b)}].name" data-field-label="שם סניף">${esc(b.name)}</h3>
           <span class="status-chip" data-branch="${escAttr(b.id)}"><span class="chip-text">…</span></span>
         </div>
-        <p class="loc-desc">${esc(b.desc)}</p>
+        <p class="loc-desc" data-field="branches[${d.branches.indexOf(b)}].desc" data-field-label="תיאור סניף">${esc(b.desc)}</p>
         <table class="hours">
           <caption style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">שעות פעילות ${esc(
             b.name

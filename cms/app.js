@@ -793,7 +793,9 @@ function textField(obj, key, label, opts = {}) {
   input.value = obj[key] ?? "";
   if (opts.placeholder) input.setAttribute("placeholder", opts.placeholder);
   input.addEventListener("input", () => { obj[key] = input.value; bump(); if (opts.onInput) opts.onInput(); });
-  return el("div", { class: "field" + (opts.mono ? " mono-field" : ""), "data-field-key": key },
+  // Generate unique field key for repeater items: "arrayName[index].key"
+  const fieldKey = __repeaterContext ? `${__repeaterContext.arrayName}[${__repeaterContext.index}].${key}` : key;
+  return el("div", { class: "field" + (opts.mono ? " mono-field" : ""), "data-field-key": fieldKey },
     el("label", { for: id }, label), input,
     opts.hint ? el("div", { class: "hint" }, opts.hint) : null);
 }
@@ -845,7 +847,8 @@ function imageField(obj, key, label, hint) {
     } catch (err) { setStatus("העלאה נכשלה", "err"); }
     finally { upBtn.disabled = false; upBtn.textContent = "העלאה"; }
   });
-  return el("div", { class: "field", "data-field-key": key },
+  const fieldKey = __repeaterContext ? `${__repeaterContext.arrayName}[${__repeaterContext.index}].${key}` : key;
+  return el("div", { class: "field", "data-field-key": fieldKey },
     el("label", {}, label),
     el("div", { style: "display:flex;gap:8px;align-items:center" }, thumb, upBtn, obj[key] ? clr : null, file),
     hint ? el("div", { class: "hint" }, hint) : null);
@@ -870,11 +873,16 @@ function videoField(obj, key, label) {
 }
 
 /* ---------------- repeater ---------------- */
-function repeater(arr, { title, make, render, addLabel }) {
-  const wrap = el("div", {});
+let __repeaterContext = null; // Track which repeater array is being rendered (for field key generation)
+function repeater(arr, { title, make, render, addLabel, arrayName = "" }) {
+  const wrap = el("div", arrayName ? { "data-repeater-array": arrayName } : {});
   function draw() {
     wrap.replaceChildren();
     arr.forEach((item, i) => {
+      const prevContext = __repeaterContext;
+      if (arrayName) __repeaterContext = { arrayName, index: i };
+      const body = render(item, i);
+      __repeaterContext = prevContext;
       wrap.append(el("div", { class: "rep-item" },
         el("div", { class: "rep-head" },
           el("span", { class: "grip" }, title ? title(item, i) : `#${i + 1}`),
@@ -882,7 +890,7 @@ function repeater(arr, { title, make, render, addLabel }) {
             el("button", { class: "btn btn-sm", type: "button", disabled: i === 0, onclick: () => { move(arr, i, -1); draw(); bump(); } }, "↑"),
             el("button", { class: "btn btn-sm", type: "button", disabled: i === arr.length - 1, onclick: () => { move(arr, i, 1); draw(); bump(); } }, "↓"),
             el("button", { class: "btn btn-sm btn-danger", type: "button", onclick: () => { pushVersion("לפני מחיקה"); arr.splice(i, 1); draw(); bump(); } }, "✕"))),
-        el("div", { class: "rep-body" }, render(item, i))));
+        el("div", { class: "rep-body" }, body)));
     });
     wrap.append(el("button", { class: "btn btn-add", type: "button", onclick: () => { arr.push(make()); draw(); bump(); } }, "+ " + (addLabel || L.add)));
   }
@@ -986,6 +994,7 @@ function sectionEditor(s) {
         imageField(d, "logo", "לוגו"),
         el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "כפתורים"),
         repeater(d.ctas, {
+          arrayName: "ctas",
           title: (c) => c.label || "כפתור",
           make: () => ({ label: "כפתור", href: "#", style: "primary" }),
           render: (c) => el("div", {},
@@ -1099,6 +1108,7 @@ function locationsEditor(d) {
     textField(d, "footnote", "הערת שוליים", { area: true, rows: 2 }),
     el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "סניפים"),
     repeater(d.branches, {
+      arrayName: "branches",
       title: (b) => b.name || "סניף",
       make: () => ({ id: rid("branch"), name: "סניף חדש", desc: "", waze: { lat: 32.0853, lng: 34.7818 }, hours: defaultHours() }),
       addLabel: "הוספת סניף",
@@ -1381,8 +1391,20 @@ function signalFieldSoon(field) {
   requestAnimationFrame(() => requestAnimationFrame(() => signalField(field)));
 }
 function signalField(field) {
-  const target = document.querySelector(`[data-field-key="${field}"]`);
+  // Handle nested paths like "ctas[0].label" or "branches[1].name" by extracting just the key
+  // For repeater items, we signal the field key within that repeater type
+  // This works because repeater items all have the same field key structure
+  let searchKey = field;
+  const arrayMatch = field.match(/^(\w+)\[(\d+)\]\.(.+)$/);
+  if (arrayMatch) {
+    const [, , , keyName] = arrayMatch;
+    searchKey = keyName; // Use just the field name (e.g., "label" from "ctas[0].label")
+  }
+
+  // Find the target field by key
+  const target = document.querySelector(`[data-field-key="${searchKey}"]`);
   if (!target) return;
+
   target.scrollIntoView({ behavior: "smooth", block: "center" });
   target.classList.remove("field-signal");
   void target.offsetWidth; // restart the CSS animation if it's already mid-run
