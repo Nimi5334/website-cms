@@ -793,8 +793,7 @@ function textField(obj, key, label, opts = {}) {
   input.value = obj[key] ?? "";
   if (opts.placeholder) input.setAttribute("placeholder", opts.placeholder);
   input.addEventListener("input", () => { obj[key] = input.value; bump(); if (opts.onInput) opts.onInput(); });
-  // Generate unique field key for repeater items: "arrayName[index].key"
-  const fieldKey = __repeaterContext ? `${__repeaterContext.arrayName}[${__repeaterContext.index}].${key}` : key;
+  const fieldKey = fieldPath(key);
   return el("div", { class: "field" + (opts.mono ? " mono-field" : ""), "data-field-key": fieldKey },
     el("label", { for: id }, label), input,
     opts.hint ? el("div", { class: "hint" }, opts.hint) : null);
@@ -847,7 +846,7 @@ function imageField(obj, key, label, hint) {
     } catch (err) { setStatus("העלאה נכשלה", "err"); }
     finally { upBtn.disabled = false; upBtn.textContent = "העלאה"; }
   });
-  const fieldKey = __repeaterContext ? `${__repeaterContext.arrayName}[${__repeaterContext.index}].${key}` : key;
+  const fieldKey = fieldPath(key);
   return el("div", { class: "field", "data-field-key": fieldKey },
     el("label", {}, label),
     el("div", { style: "display:flex;gap:8px;align-items:center" }, thumb, upBtn, obj[key] ? clr : null, file),
@@ -873,16 +872,23 @@ function videoField(obj, key, label) {
 }
 
 /* ---------------- repeater ---------------- */
-let __repeaterContext = null; // Track which repeater array is being rendered (for field key generation)
+// Stack (not a single slot) because menu items nest three repeaters deep
+// (categories → groups → items) — each level pushes its own segment so a
+// dish's field key ends up "categories[0].groups[0].items[2].name", letting
+// signalField() find the exact nested field a live-preview click named.
+let __repeaterStack = [];
+function fieldPath(key) {
+  if (!__repeaterStack.length) return key;
+  return __repeaterStack.map((seg) => `${seg.arrayName}[${seg.index}]`).join(".") + "." + key;
+}
 function repeater(arr, { title, make, render, addLabel, arrayName = "" }) {
   const wrap = el("div", arrayName ? { "data-repeater-array": arrayName } : {});
   function draw() {
     wrap.replaceChildren();
     arr.forEach((item, i) => {
-      const prevContext = __repeaterContext;
-      if (arrayName) __repeaterContext = { arrayName, index: i };
+      if (arrayName) __repeaterStack.push({ arrayName, index: i });
       const body = render(item, i);
-      __repeaterContext = prevContext;
+      if (arrayName) __repeaterStack.pop();
       wrap.append(el("div", { class: "rep-item" },
         el("div", { class: "rep-head" },
           el("span", { class: "grip" }, title ? title(item, i) : `#${i + 1}`),
@@ -1028,6 +1034,7 @@ function sectionEditor(s) {
         textField(d, "intro", "טקסט פתיחה", { area: true, rows: 2 }),
         el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "תמונות"),
         repeater(d.images, {
+          arrayName: "images",
           title: (im, i) => im.alt || `תמונה ${i + 1}`,
           make: () => ({ src: "", alt: "" }),
           addLabel: "הוספת תמונה",
@@ -1047,6 +1054,7 @@ function sectionEditor(s) {
         textField(d, "heading", "כותרת"),
         textField(d, "intro", "טקסט", { area: true, rows: 2 }),
         repeater(d.links, {
+          arrayName: "links",
           title: (l) => l.label || l.network,
           make: () => ({ network: "instagram", label: "", url: "https://" }),
           render: (l) => el("div", {},
@@ -1067,6 +1075,7 @@ function menuEditor(d) {
     textField(d, "currency", "מטבע", { hint: "₪", mono: true }),
     el("div", { class: "sec-title", style: "padding:0;margin:16px 0 8px" }, "קטגוריות ומנות"),
     repeater(d.categories, {
+      arrayName: "categories",
       title: (c) => c.title || "קטגוריה",
       make: () => ({ id: rid("cat"), title: "קטגוריה חדשה", groups: [{ items: [] }] }),
       addLabel: "הוספת קטגוריה",
@@ -1076,6 +1085,7 @@ function menuEditor(d) {
           el("div", { class: "row" }, textField(c, "title", "שם הקטגוריה"), textField(c, "navLabel", "שם בתפריט (אופציונלי)")),
           textField(c, "note", "הערה (אופציונלי)"),
           repeater(c.groups, {
+            arrayName: "groups",
             title: (g) => g.subhead || "קבוצת מנות",
             make: () => ({ subhead: "", items: [] }),
             addLabel: "הוספת קבוצה",
@@ -1084,6 +1094,7 @@ function menuEditor(d) {
               return el("div", {},
                 textField(g, "subhead", "כותרת קבוצה (אופציונלי)"),
                 repeater(g.items, {
+                  arrayName: "items",
                   title: (it) => it.name || "מנה",
                   make: () => ({ name: "מנה חדשה", price: "", desc: "", tags: [] }),
                   addLabel: "הוספת מנה",
@@ -1349,6 +1360,16 @@ const PREVIEW_EDIT_OVERLAY = `
 (function(){
   if (window.top === window) return; // safety: only activates when embedded in the CMS
   document.addEventListener("click", function(e){
+    // The a11y widget and "back to top" button live outside <header>/<main>/
+    // <footer> (loose children of <body>), so nothing below matches them —
+    // left alone, clicking the a11y button pops its real settings panel open
+    // right there in the preview iframe. There's no CMS field for either of
+    // these (they're fixed site behavior, not editable content), so just
+    // swallow the click instead of letting them activate during editing.
+    if (e.target.closest("#a11yBtn, .a11y-panel, #toTop")) {
+      e.preventDefault(); e.stopPropagation();
+      return;
+    }
     var fieldEl  = e.target.closest("[data-field]");
     var brandEl  = e.target.closest(".brand");
     var footerEl = e.target.closest(".site-footer");
@@ -1391,18 +1412,13 @@ function signalFieldSoon(field) {
   requestAnimationFrame(() => requestAnimationFrame(() => signalField(field)));
 }
 function signalField(field) {
-  // Handle nested paths like "ctas[0].label" or "branches[1].name" by extracting just the key
-  // For repeater items, we signal the field key within that repeater type
-  // This works because repeater items all have the same field key structure
-  let searchKey = field;
-  const arrayMatch = field.match(/^(\w+)\[(\d+)\]\.(.+)$/);
-  if (arrayMatch) {
-    const [, , , keyName] = arrayMatch;
-    searchKey = keyName; // Use just the field name (e.g., "label" from "ctas[0].label")
-  }
-
-  // Find the target field by key
-  const target = document.querySelector(`[data-field-key="${searchKey}"]`);
+  // textField/imageField stamp data-field-key with the exact same path
+  // fieldPath() builds (e.g. "categories[0].groups[0].items[2].name"), so
+  // this is a direct match — no stripping. (A prior version stripped this
+  // down to the bare key, which silently broke every repeater-nested field:
+  // nothing in the DOM carries the bare key anymore, so that query always
+  // came back empty and the glow never fired.)
+  const target = document.querySelector(`[data-field-key="${CSS.escape(field)}"]`);
   if (!target) return;
 
   target.scrollIntoView({ behavior: "smooth", block: "center" });

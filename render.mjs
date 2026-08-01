@@ -234,19 +234,20 @@ function renderMenu(s) {
     .join("\n");
 
   const cats = (d.categories || [])
-    .map((c) => {
+    .map((c, ci) => {
       const note = c.note ? `\n      <p class="menu-note">${esc(c.note)}</p>` : "";
       const groups = (c.groups || [])
-        .map((g) => {
+        .map((g, gi) => {
           const sub = g.subhead ? `\n      <p class="menu-sub">${esc(g.subhead)}</p>` : "";
           const items = (g.items || [])
-            .map((it) => {
-              const name = `<span class="dish-name">${esc(it.name)}${dietBadges(it.tags)}</span>`;
-              const price = `<span class="dish-price">${esc(it.price)}${
+            .map((it, ii) => {
+              const path = `categories[${ci}].groups[${gi}].items[${ii}]`;
+              const name = `<span class="dish-name" data-field="${path}.name" data-field-label="שם המנה">${esc(it.name)}${dietBadges(it.tags)}</span>`;
+              const price = `<span class="dish-price" data-field="${path}.price" data-field-label="מחיר">${esc(it.price)}${
                 currency ? " " + esc(currency) : ""
               }</span>`;
               const top = `<div class="dish-top">${name}<span class="dish-dots" aria-hidden="true"></span>${price}</div>`;
-              const desc = it.desc ? `<p class="dish-desc">${esc(it.desc)}</p>` : "";
+              const desc = it.desc ? `<p class="dish-desc" data-field="${path}.desc" data-field-label="תיאור המנה">${esc(it.desc)}</p>` : "";
               return `        <article class="dish">${top}${desc}</article>`;
             })
             .join("\n");
@@ -254,7 +255,7 @@ function renderMenu(s) {
         })
         .join("\n");
       return `    <div class="menu-cat reveal" id="${escAttr(c.id)}">
-      <div class="menu-cat-head"><h3>${esc(c.title)}</h3><span class="rule" aria-hidden="true"></span></div>${note}
+      <div class="menu-cat-head"><h3 data-field="categories[${ci}].title" data-field-label="שם הקטגוריה">${esc(c.title)}</h3><span class="rule" aria-hidden="true"></span></div>${note}
 ${groups}
     </div>`;
     })
@@ -283,12 +284,13 @@ ${cats}
 function renderGallery(s) {
   const d = s.data;
   const figs = (d.images || [])
-    .filter((im) => im && im.src)
+    .map((im, i) => ({ im, i })) // keep the original index before filtering out empty slots
+    .filter(({ im }) => im && im.src)
     .map(
-      (im) =>
+      ({ im, i }) =>
         `      <figure class="gallery-item reveal"><img src="${escAttr(im.src)}" alt="${escAttr(
           im.alt || ""
-        )}" loading="lazy"></figure>`
+        )}" loading="lazy" data-field="images[${i}].src" data-field-label="תמונה"></figure>`
     )
     .join("\n");
   const head =
@@ -314,7 +316,10 @@ function renderMedia(s) {
   // the still image; with neither it renders nothing.
   if (!d.video && !d.poster) return "";
   const source = d.video ? `\n    <source src="${escAttr(d.video)}" type="video/mp4">` : "";
-  return `<section class="photo-band reveal" aria-label="${escAttr(d.sectionLabel || "")}">
+  // id was missing here (unlike every other section type) — the CMS preview's
+  // click-to-edit relies on "main > section[id]" to know which section a
+  // click belongs to, so without it this band was silently unclickable.
+  return `<section class="photo-band reveal" id="${escAttr(s.id)}" aria-label="${escAttr(d.sectionLabel || "")}" data-field="poster" data-field-label="תמונת פתיחה">
   <video id="farmScene" autoplay loop muted playsinline preload="auto"
          poster="${escAttr(d.poster || "")}" width="1920" height="1080"
          aria-label="${escAttr(d.videoLabel || "")}" disablepictureinpicture>${source}
@@ -371,9 +376,9 @@ ${cards}
 function renderSocial(s) {
   const d = s.data;
   const links = (d.links || [])
-    .map((l) => {
+    .map((l, i) => {
       const icon = SOCIAL_ICONS[l.network] || "";
-      return `      <a href="${escAttr(l.url)}" target="_blank" rel="noopener">
+      return `      <a href="${escAttr(l.url)}" target="_blank" rel="noopener" data-field="links[${i}].label" data-field-label="קישור">
         ${icon}
         ${esc(l.label)}
       </a>`;
