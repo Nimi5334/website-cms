@@ -1404,12 +1404,23 @@ function editSectionById(id, field) {
   openSectionDrawer(s, () => renderView());
   if (field) signalFieldSoon(field);
 }
-/* Waits a couple of frames for the just-opened view/drawer to actually be in
- * the DOM (it's synchronous, but the drawer's slide-in is mid-transition)
- * before scrolling to and glowing the matched field. */
+/* openDrawer()/renderView() insert their DOM synchronously (document.body.append,
+ * not queued), so the target field genuinely exists the instant this is called -
+ * no wait is actually needed. This used to double-requestAnimationFrame "to let
+ * the drawer's slide-in transition settle first," but rAF only fires on the next
+ * compositor frame, and the drawer's own opening CSS transition (plus whatever
+ * else is competing for frames - the live-preview iframe reflowing, etc.) can
+ * starve that frame indefinitely: confirmed via tracing that editSectionById()
+ * and signalFieldSoon() both ran every time, but the rAF callback inside
+ * signalFieldSoon sometimes never fired at all, silently dropping the glow.
+ * That's the exact "works for some fields, not others" inconsistency reported -
+ * general/footer fields (no drawer, no competing transition) worked reliably;
+ * section-drawer fields (locations, menu, ctas - anything behind the sliding
+ * drawer) didn't. A plain setTimeout doesn't have this failure mode: it's
+ * scheduled on the task queue, not gated on an idle compositor frame. */
 function signalFieldSoon(field) {
   if (!field) return;
-  requestAnimationFrame(() => requestAnimationFrame(() => signalField(field)));
+  setTimeout(() => signalField(field), 0);
 }
 function signalField(field) {
   // textField/imageField stamp data-field-key with the exact same path
