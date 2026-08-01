@@ -194,11 +194,11 @@ function renderHero(s, site) {
     s.id
   )}" aria-label="${escAttr(site.brand.name)}"${bgStyle}>
   <div class="hero-inner">
-    <div class="reveal"><img class="hero-logo" src="${escAttr(d.logo)}" alt="${escAttr(
+    <div class="reveal"><img class="hero-logo" data-field="logo" data-field-label="לוגו" src="${escAttr(d.logo)}" alt="${escAttr(
     d.logoAlt || ""
   )}" width="440" height="220" fetchpriority="high"></div>
-    <h1 class="reveal" data-d="1">${escMultiline(d.headline)}</h1>
-    <p class="lead reveal" data-d="2">${esc(d.lead)}</p>
+    <h1 class="reveal" data-d="1" data-field="headline" data-field-label="כותרת ראשית">${escMultiline(d.headline)}</h1>
+    <p class="lead reveal" data-d="2" data-field="lead" data-field-label="תת-כותרת">${esc(d.lead)}</p>
     <div class="hero-ctas reveal" data-d="3">
 ${ctas}
     </div>
@@ -216,7 +216,7 @@ function renderRichtext(s) {
   return `<section class="story" id="${escAttr(s.id)}">
   <div class="wrap">
     <div class="story-inner reveal">
-      <h2>${esc(d.heading)}</h2>
+      <h2 data-field="heading" data-field-label="כותרת">${esc(d.heading)}</h2>
 ${paras}
     </div>
   </div>
@@ -262,8 +262,8 @@ ${groups}
 
   return `<section id="${escAttr(s.id)}" style="padding-top:clamp(64px,9vw,110px)">
   <div class="wrap section-head reveal">
-    <h2>${esc(d.heading)}</h2>
-    <p>${esc(d.intro)}</p>
+    <h2 data-field="heading" data-field-label="כותרת התפריט">${esc(d.heading)}</h2>
+    <p data-field="intro" data-field-label="טקסט פתיחה">${esc(d.intro)}</p>
   </div>
 
   <nav class="menu-nav" aria-label="קטגוריות תפריט">
@@ -294,8 +294,8 @@ function renderGallery(s) {
   const head =
     d.heading || d.intro
       ? `    <div class="section-head reveal">
-      <h2>${esc(d.heading || "")}</h2>
-      ${d.intro ? `<p>${esc(d.intro)}</p>` : ""}
+      <h2 data-field="heading" data-field-label="כותרת">${esc(d.heading || "")}</h2>
+      ${d.intro ? `<p data-field="intro" data-field-label="טקסט פתיחה">${esc(d.intro)}</p>` : ""}
     </div>
 `
       : "";
@@ -357,13 +357,13 @@ ${rows}
   return `<section class="locations" id="${escAttr(s.id)}">
   <div class="wrap">
     <div class="section-head start reveal">
-      <h2>${esc(d.heading)}</h2>
-      <p>${esc(d.intro)}</p>
+      <h2 data-field="heading" data-field-label="כותרת">${esc(d.heading)}</h2>
+      <p data-field="intro" data-field-label="טקסט פתיחה">${esc(d.intro)}</p>
     </div>
     <div class="loc-grid">
 ${cards}
     </div>
-    <p class="hours-note reveal">${esc(d.footnote || "")}</p>
+    <p class="hours-note reveal" data-field="footnote" data-field-label="הערת שוליים">${esc(d.footnote || "")}</p>
   </div>
 </section>`;
 }
@@ -382,8 +382,8 @@ function renderSocial(s) {
   return `<section id="${escAttr(s.id)}">
   <div class="wrap">
     <div class="section-head reveal">
-      <h2>${esc(d.heading)}</h2>
-      <p>${esc(d.intro)}</p>
+      <h2 data-field="heading" data-field-label="כותרת">${esc(d.heading)}</h2>
+      <p data-field="intro" data-field-label="טקסט">${esc(d.intro)}</p>
     </div>
     <div class="social-row reveal">
 ${links}
@@ -419,8 +419,8 @@ function renderHeader(site) {
     : "";
   return `  <div class="wrap header-inner">
     <a class="brand" href="#top" aria-label="${escAttr(site.brand.name)}. חזרה לראש הדף">
-      <img src="${escAttr(site.brand.logo)}" alt="" width="120" height="60">
-      <span>${esc(site.brand.name)}</span>
+      <img src="${escAttr(site.brand.logo)}" alt="" width="120" height="60" data-field="logo" data-field-label="לוגו">
+      <span data-field="name" data-field-label="שם העסק">${esc(site.brand.name)}</span>
     </a>
 ${NAV_TOGGLE}
     <nav class="main-nav" id="mainNav" aria-label="ניווט ראשי">
@@ -440,15 +440,15 @@ function renderFooter(site) {
   return `  <div class="wrap">
     <div class="footer-grid">
       <div class="footer-brand">
-        <img src="${escAttr(f.logo)}" alt="${escAttr(f.logoAlt || "")}" width="160" height="80" loading="lazy">
+        <img src="${escAttr(f.logo)}" alt="${escAttr(f.logoAlt || "")}" width="160" height="80" loading="lazy" data-field="logo" data-field-label="לוגו בתחתית">
       </div>
       <nav class="footer-links" aria-label="קישורי תחתית">
 ${links}
       </nav>
     </div>
     <div class="footer-bottom">
-      <span>© <span id="year">2026</span> ${esc(f.copyright)}</span>
-      <span>${esc(f.regions || "")}</span>
+      <span data-field="copyright" data-field-label="זכויות יוצרים">© <span id="year">2026</span> ${esc(f.copyright)}</span>
+      <span data-field="regions" data-field-label="טקסט נוסף">${esc(f.regions || "")}</span>
     </div>
   </div>`;
 }

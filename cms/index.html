@@ -369,6 +369,24 @@ input, textarea, select { font-family: inherit; }
 .field textarea { resize: vertical; min-height: 68px; line-height: 1.5; }
 .field .hint { color: var(--ink-3); font-size: .73rem; margin-top: 5px; }
 
+/* ─── Field signal ───────────────────────────────────────────
+   Marks the exact field that was clicked in the live preview (see
+   signalField() in app.js) with a moving/rotating border — a vanilla-CSS
+   take on a "moving border" glow, no framer-motion/React needed: a
+   comet-like conic-gradient sweeps around the field's edge a few times,
+   then fades. */
+@property --signal-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.field-signal { position: relative; border-radius: var(--r-sm); z-index: 1; }
+.field-signal::before {
+  content: ""; position: absolute; inset: -4px; border-radius: inherit; z-index: -1; padding: 3px;
+  background: conic-gradient(from var(--signal-angle), transparent 0 250deg, var(--blue) 300deg, transparent 340deg 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: fieldSignalSpin 1.4s linear 3, fieldSignalFade 2.6s ease forwards;
+}
+@keyframes fieldSignalSpin { to { --signal-angle: 360deg; } }
+@keyframes fieldSignalFade { 0%, 65% { opacity: 1; } 100% { opacity: 0; } }
+
 /* Emphasized monospace field — price / phone / coordinates */
 .field.mono-field input {
   font-family: var(--mono); font-size: .88rem; letter-spacing: .01em;

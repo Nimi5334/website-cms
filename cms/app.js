@@ -793,7 +793,7 @@ function textField(obj, key, label, opts = {}) {
   input.value = obj[key] ?? "";
   if (opts.placeholder) input.setAttribute("placeholder", opts.placeholder);
   input.addEventListener("input", () => { obj[key] = input.value; bump(); if (opts.onInput) opts.onInput(); });
-  return el("div", { class: "field" + (opts.mono ? " mono-field" : "") },
+  return el("div", { class: "field" + (opts.mono ? " mono-field" : ""), "data-field-key": key },
     el("label", { for: id }, label), input,
     opts.hint ? el("div", { class: "hint" }, opts.hint) : null);
 }
@@ -845,7 +845,7 @@ function imageField(obj, key, label, hint) {
     } catch (err) { setStatus("העלאה נכשלה", "err"); }
     finally { upBtn.disabled = false; upBtn.textContent = "העלאה"; }
   });
-  return el("div", { class: "field" },
+  return el("div", { class: "field", "data-field-key": key },
     el("label", {}, label),
     el("div", { style: "display:flex;gap:8px;align-items:center" }, thumb, upBtn, obj[key] ? clr : null, file),
     hint ? el("div", { class: "hint" }, hint) : null);
@@ -1315,35 +1315,45 @@ async function togglePreview() {
  * (never into the real published/downloaded HTML — buildHtml() is a
  * completely separate code path that never sees this). Lets the owner click
  * any section/header/footer directly in the preview and jump straight to
- * its editor, instead of hunting for it in the nav drawer. */
+ * its editor. Elements render.mjs marks with data-field/data-field-label
+ * (see render.mjs's renderHero/renderFooter/etc.) get a tighter highlight +
+ * name badge and, once the drawer opens, the CMS scrolls to and glows that
+ * *exact* field — not just the section it lives in. */
 const PREVIEW_EDIT_OVERLAY = `
 <style>
-  .cms-editable{outline:2px dashed transparent;outline-offset:-2px;cursor:pointer;position:relative;transition:outline-color .12s,background-color .12s}
-  .cms-editable:hover{outline-color:#3D8BFF;background-color:rgba(61,139,255,.06)}
-  .cms-edit-badge{position:absolute;top:8px;inset-inline-end:8px;z-index:99999;background:#18181B;color:#fff;
-    font:600 11px/1 "Heebo",system-ui,sans-serif;padding:6px 10px;border-radius:999px;pointer-events:none;
-    opacity:0;transition:opacity .12s;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-  .cms-editable:hover .cms-edit-badge{opacity:1}
+  main > section[id], .site-header, .site-footer { cursor: pointer; }
+  main > section[id]:hover, .site-header:hover, .site-footer:hover {
+    outline: 2px dashed rgba(61,139,255,.4); outline-offset: -2px;
+  }
+  [data-field] { position: relative; cursor: pointer; transition: background-color .12s, outline-color .12s; border-radius: 4px; }
+  [data-field]:hover {
+    outline: 2px solid #3D8BFF; outline-offset: 3px; background-color: rgba(61,139,255,.08);
+  }
+  [data-field]:hover::after {
+    content: "✎ " attr(data-field-label); position: absolute; top: -28px; inset-inline-start: 0; z-index: 99999;
+    background: #18181B; color: #fff; font: 600 11px/1 "Heebo",system-ui,sans-serif; padding: 6px 10px;
+    border-radius: 999px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,.25); pointer-events: none;
+  }
 </style>
 <script>
 (function(){
-  if (window.top === window) return; // safety: only activates when embedded
-  function mark(elm, label, msg){
-    if (!elm) return;
-    elm.classList.add("cms-editable");
-    var b = document.createElement("div");
-    b.className = "cms-edit-badge"; b.textContent = label;
-    elm.appendChild(b);
-    elm.addEventListener("click", function(e){
-      e.preventDefault(); e.stopPropagation();
-      window.parent.postMessage(Object.assign({ source: "cms-preview" }, msg), "*");
-    }, true);
-  }
-  document.querySelectorAll("main > section[id]").forEach(function(sec){
-    mark(sec, "✎ לחצו לעריכה", { type: "edit-section", id: sec.id });
-  });
-  mark(document.querySelector(".site-header"), "✎ עריכת התפריט העליון", { type: "edit-nav" });
-  mark(document.querySelector(".site-footer"), "✎ עריכת הפוטר", { type: "edit-footer" });
+  if (window.top === window) return; // safety: only activates when embedded in the CMS
+  document.addEventListener("click", function(e){
+    var fieldEl  = e.target.closest("[data-field]");
+    var brandEl  = e.target.closest(".brand");
+    var footerEl = e.target.closest(".site-footer");
+    var headerEl = e.target.closest(".site-header");
+    var secEl    = e.target.closest("main > section[id]");
+    var field = fieldEl ? fieldEl.getAttribute("data-field") : null;
+    var msg = null;
+    if (brandEl)       msg = { type: "edit-general", field: field };
+    else if (footerEl) msg = { type: "edit-footer",  field: field };
+    else if (headerEl) msg = { type: "edit-nav" };
+    else if (secEl)    msg = { type: "edit-section", id: secEl.id, field: field };
+    if (!msg) return;
+    e.preventDefault(); e.stopPropagation();
+    window.parent.postMessage(Object.assign({ source: "cms-preview" }, msg), "*");
+  }, true);
 })();
 <\/script>`;
 
@@ -1351,15 +1361,35 @@ window.addEventListener("message", (e) => {
   if (!$previewFrame || e.source !== $previewFrame.contentWindow) return;
   const d = e.data;
   if (!d || d.source !== "cms-preview") return;
-  if (d.type === "edit-section") editSectionById(d.id);
+  if (d.type === "edit-section") editSectionById(d.id, d.field);
   else if (d.type === "edit-nav") { state.view = "nav"; buildRail(); renderView(); }
-  else if (d.type === "edit-footer") { state.view = "footer"; buildRail(); renderView(); }
+  else if (d.type === "edit-footer") { state.view = "footer"; buildRail(); renderView(); signalFieldSoon(d.field); }
+  else if (d.type === "edit-general") { state.view = "general"; buildRail(); renderView(); signalFieldSoon(d.field); }
 });
-function editSectionById(id) {
+function editSectionById(id, field) {
   const s = (state.site.sections || []).find((x) => x.id === id);
   if (!s) return;
   state.view = "sections"; buildRail(); renderView();
   openSectionDrawer(s, () => renderView());
+  if (field) signalFieldSoon(field);
+}
+/* Waits a couple of frames for the just-opened view/drawer to actually be in
+ * the DOM (it's synchronous, but the drawer's slide-in is mid-transition)
+ * before scrolling to and glowing the matched field. */
+function signalFieldSoon(field) {
+  if (!field) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => signalField(field)));
+}
+function signalField(field) {
+  const target = document.querySelector(`[data-field-key="${field}"]`);
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  target.classList.remove("field-signal");
+  void target.offsetWidth; // restart the CSS animation if it's already mid-run
+  target.classList.add("field-signal");
+  setTimeout(() => target.classList.remove("field-signal"), 2600);
+  const input = target.querySelector("input, textarea, select");
+  if (input) setTimeout(() => input.focus({ preventScroll: true }), 280);
 }
 
 async function refreshPreview() {
