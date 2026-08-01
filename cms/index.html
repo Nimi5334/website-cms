@@ -6,7 +6,7 @@
 <title>מערכת ניהול האתר</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════════
    CMS design system — light, neutral, card-based workspace UI
@@ -53,25 +53,28 @@
 
 /* ─── Dark mode (manual toggle, not OS-driven) ───────────────
    Same token names, dark values — every component below reads these
-   vars, so no component CSS needs its own dark-mode override. The
-   accent flips from near-black to a blue (Flight-Deck-era hue) since
-   near-black on a dark canvas would be invisible for hover/active tints. */
+   vars, so no component CSS needs its own dark-mode override. Modeled
+   on the "Structured Enterprise" design variant: sharp corners, denser
+   type, IBM Plex Sans Hebrew, and a corporate blue accent — a deliberately
+   different register from the soft/rounded light mode (near-black accent,
+   Heebo, generous radius), so toggling dark mode feels like switching to
+   a focused "ops console," not just inverting the same look. */
 html.dark {
-  --canvas:    #0B0B0D;
-  --surface:   #17171A;
-  --raised:    #1F1F23;
-  --raised-2:  #26262B;
+  --canvas:    #0E1116;
+  --surface:   #161A21;
+  --raised:    #1C212A;
+  --raised-2:  #232A35;
 
-  --hair:      rgba(255,255,255,.08);
-  --hair-2:    rgba(255,255,255,.14);
+  --hair:      rgba(255,255,255,.10);
+  --hair-2:    rgba(255,255,255,.18);
 
-  --ink:       #EDEDF0;
-  --ink-2:     #9A9AA5;
-  --ink-3:     #6B6B76;
+  --ink:       #E5E8EC;
+  --ink-2:     #97A2B0;
+  --ink-3:     #667082;
 
-  --blue:      #3D8BFF;
-  --blue-dim:  rgba(61,139,255,.14);
-  --blue-line: rgba(61,139,255,.35);
+  --blue:      #4C82FF;
+  --blue-dim:  rgba(76,130,255,.16);
+  --blue-line: rgba(76,130,255,.4);
 
   --amber:     #E8A33D;
   --amber-dim: rgba(232,163,61,.14);
@@ -82,13 +85,21 @@ html.dark {
   --red:       #E5766D;
   --red-dim:   rgba(229,118,109,.14);
 
+  /* V3's sharp, structured corner scale — replaces light mode's soft r:12/8 */
+  --r:         6px;
+  --r-sm:      4px;
+  --r-pill:    4px;
+
   --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
   --shadow-md: 0 4px 20px rgba(0,0,0,.5);
 
   color-scheme: dark;
 }
+html.dark body { font-family: "IBM Plex Sans Hebrew", "Heebo", system-ui, sans-serif; }
+html.dark .deck { border-top: 3px solid var(--blue); }
+html.dark .rail-heading { font-weight: 700; letter-spacing: .07em; }
 html.dark .field select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%239A9AA5' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%2397A2B0' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
