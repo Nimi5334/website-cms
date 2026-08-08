@@ -453,7 +453,16 @@ function renderDeck() {
 
   const stage = el("main", { class: "stage" }, topline, $statsEl, $content, actionbar);
 
-  $app.replaceChildren(el("div", { class: "deck" }, stage), $navScrim, $rail);
+  // $rail must be a flex CHILD of .deck (alongside stage), not a sibling of
+  // .deck — .nav-drawer used to be position:fixed (an overlay, so sibling
+  // placement didn't matter), but the V4 restructure made it a normal docked
+  // flex item (position:relative, flex:0 0 auto). Left as a sibling of
+  // .deck, it rendered as a full-width block AFTER all of .deck's (i.e.
+  // stage's) content in normal document flow — pushed hundreds to
+  // thousands of pixels below the fold on any page taller than one screen,
+  // which is nearly always. That's the actual "menu doesn't open" bug:
+  // the rail was never hidden, just rendered far off-screen.
+  $app.replaceChildren(el("div", { class: "deck" }, $rail, stage), $navScrim);
   renderView();
   refreshStats();
 }
