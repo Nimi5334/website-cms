@@ -55,6 +55,7 @@ const ICON = {
   edit:    "M4 16l.7-3.5L13.5 3.7a1.4 1.4 0 0 1 2 0l.8.8a1.4 1.4 0 0 1 0 2L7.5 15.3 4 16z M12 5.5l2.5 2.5",
   settings:"M3 6h6M12.5 6h4.5M3 10.5h11.5M3 15h8.5M15 15h2",
   chart:   "M4 16.5V9.5M9 16.5V4.5M14 16.5v-6M3 16.5h14",
+  plus:    "M10 4v12M4 10h12",
 };
 function icon(name, cls = "") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -283,7 +284,7 @@ function markDirty() {
     sessionSnapshotTaken = false; // next field touched starts a fresh undo point
   }, 700);
   clearTimeout(previewDebounce);
-  previewDebounce = setTimeout(() => { refreshStats(); if (state.view === "edit-site") refreshPreview(); }, 420);
+  previewDebounce = setTimeout(() => { if (state.view === "edit-site") refreshPreview(); }, 420);
 }
 
 /* Every ordinary field edit (text, color, select, checkbox…) goes through
@@ -318,9 +319,9 @@ function pushVersion(label) {
   } catch {}
 }
 /** Quick one-click undo: restores the most recent snapshot in version
- * history (pushed automatically before every deletion — see rowMenu,
- * repeater, and imageField below — plus on every publish/download), without
- * needing to open the היסטוריה modal first. */
+ * history (pushed automatically before every deletion — see the section
+ * drawer's delete button, repeater, and imageField below — plus on every
+ * publish/download), without needing to open the היסטוריה modal first. */
 function undoLast() {
   const versions = loadVersions();
   if (!versions.length) { setStatus("אין שינויים לביטול", "warn"); return; }
@@ -364,8 +365,7 @@ function showVersions() {
 /* ---------------- user guide ---------------- */
 const GUIDE_SECTIONS = [
   { icon: "home",    title: "בית", body: "דשבורד אמיתי: כמה אחוז מהאתר שלכם מוכן, מה כדאי לתקן קודם, אילו חלקים כבר גמורים, וקישור לנתוני מבקרים." },
-  { icon: "layers",  title: "עריכת תוכן", body: "כאן בונים את הדף עצמו: לחצו על שורה כדי לפתוח עורך בצד ולערוך את התוכן שלה. \"הוספת אזור\" מוסיפה סוג תוכן חדש (תפריט, גלריה, סניפים ועוד). שכפול, מחיקה, הצגה/הסתרה והזזה למעלה/למטה זמינים דרך תפריט ⋯ שבכל שורה." },
-  { icon: "edit",    title: "עריכת האתר", body: "תצוגה חיה של האתר האמיתי — לחצו על כל חלק בדף (כותרת, תמונה, טקסט) כדי לערוך אותו במקום. אפשר לעבור בין תצוגת מחשב לנייד בכפתורים שמעל התצוגה." },
+  { icon: "edit",    title: "עריכת האתר", body: "תצוגה חיה של האתר האמיתי — לחצו על כל חלק בדף (כותרת, תמונה, טקסט) כדי לערוך אותו במקום. \"הוספת אזור\" (מעל התצוגה) מוסיפה סוג תוכן חדש (תפריט, גלריה, סניפים ועוד); מחיקת אזור זמינה בתוך חלון העריכה שלו. אפשר לעבור בין תצוגת מחשב לנייד בכפתורים שמעל התצוגה." },
   { icon: "settings",title: "הגדרות", body: "שם העסק, לוגו, כותרת הדף וה-favicon, צבעי המותג והגופנים, תפריט עליון ופוטר, וגם חשבון (סיסמה, יציאה), גיבוי/ייבוא, ומצב כהה." },
   { icon: "undo",    title: "ביטול והיסטוריה", body: "כל שינוי — כולל מחיקות — נשמר אוטומטית כגרסה. כפתור החץ מבטל מהר את הפעולה האחרונה, וכפתור \"היסטוריה\" (בהגדרות) מציג את כל הגרסאות השמורות לשחזור מלא." },
   { icon: "upload",  title: "פרסום ושמירה", body: "השינויים נשמרים אוטומטית לחשבון שלכם תוך כדי עריכה. \"פרסום לאינטרנט\" מעלה את הגרסה הנוכחית לאתר החי; \"הורדת קובץ\" (בהגדרות) שומרת עותק מקומי (HTML עצמאי) למחשב." },
@@ -386,7 +386,7 @@ function showGuide() {
     el("div", { class: "modal-head" }, el("span", {}, "מדריך למשתמש — איך בונים אתר"),
       el("button", { class: "btn btn-sm", onclick: close }, "סגירה")),
     el("div", { class: "guide-wrap" },
-      el("p", { class: "guide-intro" }, "המערכת בנויה מ־4 מקומות בסרגל הצד: בית, עריכת תוכן, עריכת האתר והגדרות. כל שינוי נשמר אוטומטית ואפשר לבטל כל פעולה בכל שלב — אפשר להתנסות בלי חשש."),
+      el("p", { class: "guide-intro" }, "המערכת בנויה מ־3 מקומות בסרגל הצד: בית, עריכת האתר והגדרות. כל שינוי נשמר אוטומטית ואפשר לבטל כל פעולה בכל שלב — אפשר להתנסות בלי חשש."),
       grid));
   document.body.append(scrim, modal);
 }
@@ -394,12 +394,11 @@ function showGuide() {
 /* ---------------- deck shell ---------------- */
 const VIEWS = [
   { key: "home",      label: "בית",         icon: "home"     },
-  { key: "sections",  label: "עריכת תוכן",  icon: "layers"   },
   { key: "edit-site", label: "עריכת האתר",  icon: "edit"     },
   { key: "settings",  label: "הגדרות",      icon: "settings" },
 ];
 
-let $previewFrame = null, $content = null, $statsEl = null, $rail = null, $navScrim = null;
+let $previewFrame = null, $content = null, $rail = null, $navScrim = null;
 
 function renderDeck() {
   const site = state.site;
@@ -439,9 +438,6 @@ function renderDeck() {
     el("button", { class: "btn btn-sm", onclick: showVersions }, "היסטוריה"),
     el("button", { class: "btn btn-sm btn-icon", onclick: undoLast, title: "ביטול השינוי האחרון (מחיקות/עריכות)", "aria-label": "ביטול השינוי האחרון" }, icon("undo")));
 
-  /* stats */
-  $statsEl = el("div", { class: "stats" });
-
   /* content */
   $content = el("div", { class: "content" });
 
@@ -451,7 +447,7 @@ function renderDeck() {
     el("button", { class: "btn", onclick: downloadFile }, "הורדת קובץ"),
     el("span", { class: "note" }, "השינויים נשמרים אוטומטית · פרסום מעדכן את האתר החי"));
 
-  const stage = el("main", { class: "stage" }, topline, $statsEl, $content, actionbar);
+  const stage = el("main", { class: "stage" }, topline, $content, actionbar);
 
   // $rail must be a flex CHILD of .deck (alongside stage), not a sibling of
   // .deck — .nav-drawer used to be position:fixed (an overlay, so sibling
@@ -464,7 +460,6 @@ function renderDeck() {
   // the rail was never hidden, just rendered far off-screen.
   $app.replaceChildren(el("div", { class: "deck" }, $rail, stage), $navScrim);
   renderView();
-  refreshStats();
 }
 
 /* ---------------- site-editing view (dedicated live preview + click-to-edit) ----
@@ -474,8 +469,25 @@ function renderDeck() {
  * postMessage click-to-edit handlers below all key off the same module-level
  * $previewFrame regardless of where it's currently mounted. */
 function editSiteView() {
+  const site = state.site;
+  site.sections = site.sections || [];
+
+  // The one capability click-to-edit-on-the-preview can't offer on its own:
+  // adding a new content section. Lives right in the preview's top bar so
+  // the whole "build the page" workflow stays on this one screen.
+  const addSel = el("select", { class: "vp-add-sel" });
+  ADDABLE_SECTIONS.forEach((t) => addSel.append(el("option", { value: t }, SECTION_LABELS[t] || t)));
+  const addBtn = el("button", { class: "btn btn-sm btn-primary", onclick: () => {
+    const s = defaultSection(addSel.value);
+    site.sections.push(s);
+    markDirty();
+    openSectionDrawer(s, () => renderView());
+  } }, icon("plus"), "הוספת אזור");
+
   const vpBar = el("div", { class: "vp-bar" },
     el("span", { class: "lbl" }, "לחצו על כל חלק באתר כדי לערוך אותו"),
+    addSel, addBtn,
+    el("span", { class: "vp-sep" }),
     el("button", { class: "dev-btn on", onclick: (e) => setDevice(e.currentTarget, false) }, "מחשב"),
     el("button", { class: "dev-btn", onclick: (e) => setDevice(e.currentTarget, true) }, "נייד"));
   const frame = el("div", { class: "edit-site-view" },
@@ -587,26 +599,15 @@ function renderView() {
   if (!$content) return;
   const site = state.site;
   $content.replaceChildren();
-  // Stats strip + action bar only make sense for the content-editing view —
-  // home has its own dashboard cards, edit-site is a full-bleed live preview,
-  // settings is a plain field list.
-  if ($statsEl) $statsEl.classList.toggle("hide", state.view !== "sections");
+  // Action bar only makes sense outside the full-bleed live-preview screen.
   document.querySelector(".actionbar")?.classList.toggle("hide", state.view === "edit-site");
   switch (state.view) {
     case "home":      $content.append(panelHome(site)); break;
-    case "sections":  $content.append(sectionsTable(site)); break;
     case "edit-site": $content.append(editSiteView()); break;
     case "settings":  $content.append(el("div", { class: "pad settings-pad" }, ...panelSettings(site))); break;
   }
 }
 
-/* ---------------- stat strip ---------------- */
-function countImages(o, seen = 0) {
-  if (typeof o === "string") return /^data:image/.test(o) ? seen + 1 : seen;
-  if (Array.isArray(o)) return o.reduce((n, v) => countImages(v, n), seen);
-  if (o && typeof o === "object") return Object.values(o).reduce((n, v) => countImages(v, n), seen);
-  return seen;
-}
 function sectionStatus(s) {
   if (s.visible === false) return "off";
   const d = s.data || {};
@@ -635,30 +636,6 @@ function sectionCount(s) {
 function sectionName(s) {
   const d = s.data || {};
   return (d.heading || d.headline || SECTION_LABELS[s.type] || s.type).split("\n")[0];
-}
-
-function refreshStats() {
-  if (!$statsEl) return;
-  const secs = state.site.sections || [];
-  const needs = secs.filter((s) => sectionStatus(s) === "warn").length;
-  const imgs = countImages(state.site);
-
-  // Sparkline built from real content volume per section — not decoration.
-  const vals = secs.map(sectionCount);
-  const max = Math.max(1, ...vals);
-  const w = 108, h = 26;
-  const pts = vals.length > 1
-    ? vals.map((v, i) => `${(i / (vals.length - 1)) * w},${h - (v / max) * (h - 4) - 2}`).join(" ")
-    : `0,${h - 2} ${w},${h - 2}`;
-  const spark = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
-    <polyline points="${pts}" stroke="#3D8BFF" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
-  </svg>`;
-
-  $statsEl.replaceChildren(
-    el("div", { class: "stat" }, el("span", { class: "k" }, "אזורי תוכן"), el("span", { class: "v blue" }, String(secs.length))),
-    el("div", { class: "stat" }, el("span", { class: "k" }, "תמונות"), el("span", { class: "v" }, String(imgs))),
-    el("div", { class: "stat" }, el("span", { class: "k" }, "דורש השלמה"), el("span", { class: "v" + (needs ? " amber" : "") }, String(needs))),
-    el("div", { class: "spark", html: spark }));
 }
 
 /* ---------------- home dashboard (real completeness score, no fabricated numbers) ----
@@ -698,7 +675,7 @@ function computeSeoChecklist(site) {
     if (s.visible === false) return;
     checks.push({
       id: "section-" + s.id, ok: sectionStatus(s) === "ok", label: sectionName(s),
-      why: sectionGapReason(s), view: "sections", sectionId: s.id,
+      why: sectionGapReason(s), view: "edit-site", sectionId: s.id,
       pri: GAP_PRIORITY[s.type] || 2,
     });
   });
@@ -784,72 +761,8 @@ function panelHome(site) {
   return el("div", { class: "pad home-pad" }, head, recsGrid, analyticsCard, doneSection);
 }
 
-/* ---------------- sections table (V4 zone-card grid) ---------------- */
-function sectionsTable(site) {
-  site.sections = site.sections || [];
-  const wrap = el("div", {});
-  const table = el("div", { class: "recs" });
-
-  function draw() {
-    table.replaceChildren();
-    if (!site.sections.length) table.append(el("div", { class: "empty" }, "אין עדיין אזורי תוכן. הוסיפו אזור למטה."));
-    site.sections.forEach((s, i) => {
-      const st = sectionStatus(s);
-      const n = sectionCount(s);
-      const markIcon = st === "ok" ? icon("check") : st === "warn" ? icon("alert") : null;
-      const card = el("article", { class: "rec st-" + st },
-        el("div", { class: "rec-head" },
-          el("span", { class: "mark " + (st === "ok" ? "done" : st === "warn" ? "todo" : "") },
-            markIcon || "–"),
-          el("h3", {}, sectionName(s)),
-          el("button", {
-            class: "dots", "aria-label": "פעולות נוספות",
-            onclick: (e) => { e.stopPropagation(); rowMenu(e.currentTarget, s, i, draw); },
-          }, "⋯")),
-        el("div", { class: "chips" },
-          el("span", { class: "chip chip-mid" }, SECTION_LABELS[s.type] || s.type),
-          n ? el("span", { class: "chip chip-time" }, String(n)) : null),
-        el("div", { class: "rec-foot" },
-          el("span", { class: "sp" }),
-          el("button", { class: "btn btn-primary", onclick: () => openSectionDrawer(s, draw) }, "עריכה")));
-      table.append(card);
-    });
-  }
-  draw();
-
-  const sel = el("select", {});
-  ADDABLE_SECTIONS.forEach((t) => sel.append(el("option", { value: t }, SECTION_LABELS[t] || t)));
-  const adder = el("div", { class: "pad" },
-    el("div", { class: "row", style: "align-items:center" },
-      el("div", { class: "field", style: "margin:0" }, sel),
-      el("button", { class: "btn btn-primary", style: "flex:0 0 auto", onclick: () => {
-        const s = defaultSection(sel.value);
-        site.sections.push(s); draw(); markDirty(); openSectionDrawer(s, draw);
-      } }, "הוספת אזור")));
-
-  wrap.append(el("div", { class: "sec-title" }, "אזורי התוכן של האתר — לחצו על שורה לעריכה"), table, adder);
-  return wrap;
-}
-
-function rowMenu(anchor, s, i, redraw) {
-  document.querySelector(".rowmenu")?.remove();
-  const r = anchor.getBoundingClientRect();
-  const sections = state.site.sections;
-  const menu = el("div", { class: "rowmenu", style: `top:${r.bottom + 4}px; left:${r.left}px` },
-    el("button", { onclick: () => { s.visible = s.visible === false; close(); redraw(); markDirty(); } },
-      s.visible === false ? "הצגה באתר" : "הסתרה מהאתר"),
-    el("button", { disabled: i === 0, onclick: () => { move(sections, i, -1); close(); redraw(); markDirty(); } }, "העלאה למעלה"),
-    el("button", { disabled: i === sections.length - 1, onclick: () => { move(sections, i, 1); close(); redraw(); markDirty(); } }, "הורדה למטה"),
-    el("button", { onclick: () => { const c = clone(s); c.id = rid(s.type); sections.splice(i + 1, 0, c); close(); redraw(); markDirty(); } }, "שכפול"),
-    el("button", { class: "danger", onclick: () => { if (confirm("למחוק את האזור?")) { pushVersion("לפני מחיקת אזור"); sections.splice(i, 1); close(); redraw(); markDirty(); } } }, "מחיקה"));
-  function close() { menu.remove(); document.removeEventListener("click", onDoc, true); }
-  function onDoc(e) { if (!menu.contains(e.target)) close(); }
-  document.body.append(menu);
-  setTimeout(() => document.addEventListener("click", onDoc, true), 0);
-}
-
 /* ---------------- drawer ---------------- */
-function openDrawer({ title, body, onCancel, onDone }) {
+function openDrawer({ title, body, onCancel, onDone, titleExtra }) {
   const scrim = el("div", { class: "scrim", onclick: () => cancel() });
   const pill = el("span", { class: "chip", style: "display:none" }, "שינויים שלא נשמרו");
 
@@ -858,7 +771,9 @@ function openDrawer({ title, body, onCancel, onDone }) {
   window.__cmsMark = () => { pill.className = "chip warn"; pill.style.display = ""; };
 
   const drawer = el("aside", { class: "drawer" },
-    el("div", { class: "dw-head" }, el("h2", {}, title), pill),
+    el("div", { class: "dw-head" },
+      el("div", { class: "dw-head-row" }, el("h2", {}, title), titleExtra || null),
+      pill),
     el("div", { class: "dw-body" }, body),
     el("div", { class: "dw-foot" },
       el("button", { class: "btn btn-primary", onclick: () => done() }, "שמירה"),
@@ -875,18 +790,31 @@ function openDrawer({ title, body, onCancel, onDone }) {
 
   document.addEventListener("keydown", onKey);
   document.body.append(scrim, drawer);
+  return { close: teardown };
 }
 
 function openSectionDrawer(s, redraw) {
   const before = clone(s);
-  openDrawer({
+  const deleteBtn = el("button", { class: "btn btn-sm btn-danger", onclick: () => {
+    if (!confirm("למחוק את האזור?")) return;
+    const sections = state.site.sections || [];
+    const i = sections.indexOf(s);
+    if (i === -1) return;
+    pushVersion("לפני מחיקת אזור");
+    sections.splice(i, 1);
+    handle.close();
+    redraw();
+    markDirty();
+  } }, "מחיקת אזור");
+  const handle = openDrawer({
     title: sectionName(s),
+    titleExtra: deleteBtn,
     body: el("div", {}, sectionEditor(s)),
-    onDone: () => { persistNow(state.site); redraw(); refreshStats(); if (previewOn) refreshPreview(); setStatus("נשמר ✓", "ok"); },
+    onDone: () => { persistNow(state.site); redraw(); if (state.view === "edit-site") refreshPreview(); setStatus("נשמר ✓", "ok"); },
     onCancel: () => {
       Object.keys(s).forEach((k) => delete s[k]);
       Object.assign(s, before);
-      persistNow(state.site); redraw(); refreshStats(); if (state.view === "edit-site") refreshPreview();
+      persistNow(state.site); redraw(); if (state.view === "edit-site") refreshPreview();
       setStatus("השינויים בוטלו", "");
     },
   });
@@ -920,7 +848,7 @@ function runSearch(q, box) {
     class: "cmd-hit",
     onclick: () => {
       box.classList.add("hide");
-      state.view = "sections"; buildRail(); renderView();
+      state.view = "edit-site"; buildRail(); renderView();
       openSectionDrawer(h.section, () => renderView());
     },
   }, el("span", {}, h.label), el("em", {}, h.ctx))));
