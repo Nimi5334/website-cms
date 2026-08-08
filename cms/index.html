@@ -9,97 +9,102 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════════
-   CMS design system — light, neutral, card-based workspace UI
-   Canvas #F4F4F5 · Surface/Card #FFFFFF · Ink near-black #18181B
-   One restrained accent (near-black primary); status colors kept
-   for state chips only. Soft borders + shadows, no gradients,
-   no neon, no glassmorphism.
+   CMS design system — V4: warm, café-like editor workspace
+   Canvas #FBF8F3 · Surface/Card #FFFFFF · Ink #141F1C
+   Two accents (teal primary, gold secondary) on a cream base.
+   Soft borders + shadows, generous radius, no gradients, no neon.
    ═══════════════════════════════════════════════════════════ */
 :root {
-  --canvas:    #F4F4F5;
+  --canvas:    #FBF8F3;
   --surface:   #FFFFFF;
   --raised:    #FFFFFF;
-  --raised-2:  #F4F4F5;
+  --raised-2:  #F1EDE4;
 
-  --hair:      rgba(24,24,27,.09);
-  --hair-2:    rgba(24,24,27,.16);
+  --hair:      rgba(20,31,28,.09);
+  --hair-2:    rgba(20,31,28,.16);
 
-  --ink:       #18181B;
-  --ink-2:     #71717A;
-  --ink-3:     #A1A1AA;
+  --ink:       #141F1C;
+  --ink-2:     #5F6B67;
+  --ink-3:     #5E6963;
 
-  --blue:      #18181B;
-  --blue-dim:  rgba(24,24,27,.06);
-  --blue-line: rgba(24,24,27,.18);
+  --blue:      #14564C;
+  --blue-btn:  #14564C;
+  --blue-hover:#0E4239;
+  --blue-dim:  rgba(20,86,76,.06);
+  --blue-line: rgba(20,86,76,.18);
 
-  --amber:     #B45309;
-  --amber-dim: rgba(180,83,9,0.10);
-  --amber-line:rgba(180,83,9,0.28);
+  --amber:     #8A6112;
+  --amber-dim: rgba(138,97,18,0.10);
+  --amber-line:rgba(138,97,18,0.28);
 
   --green:     #15803D;
   --green-dim: rgba(21,128,61,0.10);
-  --red:       #C0392B;
-  --red-dim:   rgba(192,57,43,0.10);
+  --red:       #A8412C;
+  --red-dim:   rgba(168,65,44,0.10);
+  --red-line:  rgba(168,65,44,.28);
 
-  --r:         12px;
-  --r-sm:      8px;
+  --r:         16px;
+  --r-sm:      11px;
   --r-pill:    100px;
 
-  --shadow-sm: 0 1px 2px rgba(24,24,27,.04);
-  --shadow-md: 0 4px 16px rgba(24,24,27,.06);
+  --shadow-sm: 0 1px 2px rgba(20,31,28,.04);
+  --shadow-md: 0 4px 16px rgba(20,31,28,.06);
 
   --mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 /* ─── Dark mode (manual toggle, not OS-driven) ───────────────
-   Same token names, dark values — every component below reads these
-   vars, so no component CSS needs its own dark-mode override. Modeled
-   on the "Structured Enterprise" design variant: sharp corners, denser
-   type, IBM Plex Sans Hebrew, and a corporate blue accent — a deliberately
-   different register from the soft/rounded light mode (near-black accent,
-   Heebo, generous radius), so toggling dark mode feels like switching to
-   a focused "ops console," not just inverting the same look. */
+   Same token names and V4 identity as light mode (teal/gold on a
+   dark, warm-neutral base) — every component below reads these
+   vars, so no component CSS needs its own dark-mode override
+   beyond the couple of cases where a color must flip role (the
+   primary button needs a deeper teal so white text stays readable,
+   while --blue itself stays bright enough to read as text on the
+   dark canvas — see --blue vs --blue-btn below). Same soft radius
+   and Heebo as light — dark mode is a tonal shift, not a different
+   design register. */
 html.dark {
-  --canvas:    #0E1116;
-  --surface:   #161A21;
-  --raised:    #1C212A;
-  --raised-2:  #232A35;
+  --canvas:    #12201B;
+  --surface:   #1A2822;
+  --raised:    #21332B;
+  --raised-2:  #263A31;
 
   --hair:      rgba(255,255,255,.10);
   --hair-2:    rgba(255,255,255,.18);
 
-  --ink:       #E5E8EC;
-  --ink-2:     #97A2B0;
-  --ink-3:     #667082;
+  --ink:       #F3EFE6;
+  --ink-2:     #A9B3AC;
+  --ink-3:     #93A09A;
 
-  --blue:      #4C82FF;
-  --blue-dim:  rgba(76,130,255,.16);
-  --blue-line: rgba(76,130,255,.4);
+  --blue:      #40CBB0;
+  --blue-btn:  #1B8070;
+  --blue-hover:#156F60;
+  --blue-dim:  rgba(64,203,176,.16);
+  --blue-line: rgba(64,203,176,.4);
 
-  --amber:     #E8A33D;
-  --amber-dim: rgba(232,163,61,.14);
-  --amber-line:rgba(232,163,61,.35);
+  --amber:     #E0AC4E;
+  --amber-dim: rgba(224,172,78,.14);
+  --amber-line:rgba(224,172,78,.35);
 
   --green:     #46B87A;
   --green-dim: rgba(70,184,122,.14);
-  --red:       #E5766D;
-  --red-dim:   rgba(229,118,109,.14);
+  --red:       #E0836F;
+  --red-dim:   rgba(224,131,111,.14);
+  --red-line:  rgba(224,131,111,.28);
 
-  /* V3's sharp, structured corner scale — replaces light mode's soft r:12/8 */
-  --r:         6px;
-  --r-sm:      4px;
-  --r-pill:    4px;
+  --r:         16px;
+  --r-sm:      11px;
+  --r-pill:    100px;
 
   --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
   --shadow-md: 0 4px 20px rgba(0,0,0,.5);
 
   color-scheme: dark;
 }
-html.dark body { font-family: "IBM Plex Sans Hebrew", "Heebo", system-ui, sans-serif; }
 html.dark .deck { border-top: 3px solid var(--blue); }
 html.dark .rail-heading { font-weight: 700; letter-spacing: .07em; }
 html.dark .field select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%2397A2B0' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%23a9b3ac' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -148,35 +153,28 @@ input, textarea, select { font-family: inherit; }
   flex: 1; padding: 7px 0; border-radius: var(--r-pill); font-size: .8rem; color: var(--ink-2);
   background: transparent; border: none; cursor: pointer; transition: background .14s, color .14s;
 }
-.auth-tabs button.on { background: var(--blue); color: #fff; font-weight: 600; }
+.auth-tabs button.on { background: var(--blue-btn); color: #fff; font-weight: 600; }
 
-/* ═══ DECK LAYOUT ═══ Navigation lives in an animated slide-out drawer,
-   not a permanently-docked sidebar — the stage takes the full width and
-   the drawer overlays on top when opened via the hamburger button. */
+/* ═══ DECK LAYOUT ═══ V4: navigation is a persistent, always-visible
+   docked rail (not an off-canvas drawer) — the rail and the stage sit
+   side by side and both are always on screen. The nav-scrim/hamburger/
+   close-button/drag-handle machinery in app.js is left wired (harmless,
+   just visually inert now) rather than touched, since restyling should
+   not risk the click-to-edit / view-switch logic underneath it. */
 .deck { display: flex; height: 100dvh; background: var(--canvas); }
 
-/* ─── Nav scrim (dims the page behind the open drawer) ───── */
-.nav-scrim {
-  position: fixed; inset: 0; z-index: 70; background: rgba(24,24,27,.38);
-  opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s;
-}
-.nav-scrim.open { opacity: 1; visibility: visible; transition-delay: 0s; }
+.nav-scrim, .nav-open-btn, .nav-close-btn, .nav-drag-handle { display: none; }
 
-/* ─── Nav drawer (animated slide-out menu) ─────────────────
-   Pinned to the physical right edge (inset-inline-start = "right" in
-   this RTL app). translateX is a physical transform regardless of
-   direction, so translateX(100%) correctly slides it off past the
-   right edge, out of view, when closed. */
+/* ─── Rail (docked, always visible) ────────────────────────
+   Was a fixed-position slide-out drawer; now a normal flex child that
+   sits beside .stage, matching the V4 rail pattern. */
 .nav-drawer {
-  position: fixed; z-index: 71; inset-block: 0; inset-inline-start: 0;
-  width: min(300px, 86vw); background: var(--surface);
+  position: relative; flex: 0 0 auto;
+  width: 246px; background: var(--surface);
   border-inline-end: 1px solid var(--hair);
-  box-shadow: -18px 0 48px rgba(24,24,27,.14);
-  display: flex; flex-direction: column; padding: 16px 14px;
-  transform: translateX(100%);
-  transition: transform .38s cubic-bezier(.22,.9,.28,1.08);
+  display: flex; flex-direction: column; padding: 16px 12px;
+  transform: none; transition: none;
 }
-.nav-drawer.open { transform: translateX(0); }
 
 /* thin draggable strip along the drawer's inner (content-facing) edge —
    drag it further inward (toward the page) to close, like swiping the
@@ -194,13 +192,13 @@ input, textarea, select { font-family: inherit; }
 .nav-close-btn:hover { background: var(--hair-2); color: var(--ink); transform: rotate(90deg); }
 
 .rail-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px; margin: 36px 0 14px; border-radius: var(--r-sm);
+  display: flex; align-items: center; gap: 11px;
+  padding: 8px 10px; margin: 4px 0 18px; border-radius: var(--r-sm);
 }
 .rail-avatar {
-  flex-shrink: 0; width: 34px; height: 34px; border-radius: var(--r-sm);
-  background: var(--blue); color: #fff;
-  display: grid; place-items: center; font-weight: 700; font-size: .85rem;
+  flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px;
+  background: var(--blue-btn); color: #fff;
+  display: grid; place-items: center; font-weight: 700; font-size: .95rem;
 }
 .rail-header-txt { display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 .rail-header-name { font-size: .87rem; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -212,23 +210,22 @@ input, textarea, select { font-family: inherit; }
   text-transform: uppercase; color: var(--ink-3);
 }
 
-/* nav-drawer items: staggered slide-in when the drawer opens, using a
-   per-item --i index (set inline by app.js) for the transition-delay */
+/* Rail items — always visible now (docked, not slide-out), so no
+   entrance animation; the --i stagger index app.js sets inline is
+   simply unused now, which is harmless. */
 .rail-btn {
-  width: 100%; padding: 9px 10px; border-radius: var(--r-sm);
-  display: flex; align-items: center; gap: 10px;
-  color: var(--ink-2); font-weight: 500;
+  width: 100%; min-height: 50px; padding: 0 12px; border-radius: 12px;
+  display: flex; align-items: center; gap: 12px;
+  color: var(--ink-2); font-weight: 600; font-size: .88rem;
   position: relative; text-align: start; white-space: nowrap; overflow: hidden;
-  opacity: 0; transform: translateX(14px);
-  transition: color .13s, background .13s,
-              opacity .32s ease calc(var(--i, 0) * 45ms),
-              transform .32s cubic-bezier(.22,.9,.3,1.05) calc(var(--i, 0) * 45ms);
+  transition: color .13s, background .13s;
 }
-.nav-drawer.open .rail-btn { opacity: 1; transform: none; }
-.rail-btn svg { width: 17px; height: 17px; stroke-width: 1.6; flex-shrink: 0; }
-.rail-btn span { font-size: .84rem; overflow: hidden; text-overflow: ellipsis; }
+.rail-btn svg { width: 19px; height: 19px; stroke-width: 1.6; flex-shrink: 0; color: var(--blue); }
+.rail-btn span { overflow: hidden; text-overflow: ellipsis; }
 .rail-btn:hover { color: var(--ink); background: var(--blue-dim); }
-.rail-btn.on { color: var(--ink); background: var(--blue-dim); font-weight: 600; }
+.rail-btn.on { color: #fff; background: var(--blue-btn); font-weight: 700; }
+.rail-btn.on svg { color: #fff; }
+.rail-btn-danger svg { color: var(--red); }
 .rail-btn-danger:hover { color: var(--red); background: var(--red-dim); }
 .rail-sep { flex: 1; }
 .rail-bottom {
@@ -293,17 +290,19 @@ input, textarea, select { font-family: inherit; }
 }
 .chip.ok    { color: var(--green); background: var(--green-dim); border-color: rgba(21,128,61,.25); }
 .chip.warn  { color: var(--amber); background: var(--amber-dim); border-color: var(--amber-line); }
-.chip.err   { color: var(--red);   background: var(--red-dim);   border-color: rgba(192,57,43,.25); }
+.chip.err   { color: var(--red);   background: var(--red-dim);   border-color: var(--red-line); }
 .chip:empty { display: none; }
 
-/* ─── Stat strip ─────────────────────────────────────────── */
+/* ─── Stat strip — a V4-style card, not a bare border-bottom row ── */
 .stats {
-  display: flex; align-items: center; gap: 28px; flex-shrink: 0;
-  padding: 14px 20px; border-bottom: 1px solid var(--hair);
+  display: flex; align-items: center; gap: 32px; flex-shrink: 0;
+  margin: 20px 20px 0; padding: 18px 22px;
+  background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
 }
-.stat { display: flex; flex-direction: column; gap: 1px; }
-.stat .k { font-size: .66rem; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
-.stat .v { font-family: var(--mono); font-size: 1.5rem; font-weight: 500; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat .k { font-size: .68rem; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
+.stat .v { font-family: var(--mono); font-size: 1.7rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .stat .v.amber { color: var(--amber); }
 .stat .v.blue  { color: var(--blue); }
 .stats .spark { margin-inline-start: auto; opacity: .9; }
@@ -318,39 +317,41 @@ input, textarea, select { font-family: inherit; }
 }
 .sec-title:first-child { margin-top: 20px; }
 
-/* ─── Dense table (sections list) — a bordered white card ── */
-.dtable {
+/* ─── Zone cards (was a dense table row list) — V4's .rec card
+   pattern: icon badge + title + status chips + right-aligned action
+   button, laid out as a responsive grid instead of stacked rows. ── */
+.recs {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px; margin: 0 20px;
+}
+.rec {
   background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r);
-  box-shadow: var(--shadow-sm); overflow: hidden; margin: 0 20px;
+  padding: 18px 20px; display: flex; flex-direction: column; gap: 11px;
+  transition: border-color .16s, box-shadow .16s, transform .16s;
 }
-.drow {
-  display: flex; align-items: center; gap: 10px;
-  height: 44px; padding: 0 16px 0 14px;
-  border-bottom: 1px solid var(--hair);
-  cursor: pointer; transition: background .1s;
-  position: relative;
-}
-.drow:last-child { border-bottom: none; }
-.drow:hover { background: var(--raised-2); }
+.rec:hover { border-color: var(--blue-line); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.rec.st-off { opacity: .62; }
+.rec-head { display: flex; align-items: flex-start; gap: 10px; }
+.rec-head h3 { font-size: .95rem; font-weight: 700; flex: 1; line-height: 1.3; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-head .dots { color: var(--ink-3); padding: 4px 6px; border-radius: var(--r-sm); flex-shrink: 0; line-height: 1; }
+.rec-head .dots:hover { color: var(--ink); background: var(--raised-2); }
 
-/* 3px status bar pinned to the RIGHT edge (RTL start) */
-.drow::before {
-  content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 3px;
+.mark {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--hair-2); color: var(--ink-3); font-size: .75rem;
 }
-.drow.st-ok::before   { background: var(--green); }
-.drow.st-warn::before { background: repeating-linear-gradient(180deg, var(--amber) 0 4px, transparent 4px 8px); }
-.drow.st-off::before  { background: repeating-linear-gradient(135deg, var(--red) 0 3px, transparent 3px 6px); }
+.mark svg { width: 14px; height: 14px; stroke-width: 2.2; }
+.mark.done { background: var(--green); border-color: var(--green); color: #fff; }
+.mark.todo { background: var(--amber-dim); border-color: var(--amber-line); color: var(--amber); }
 
-.drow .nm { font-size: .84rem; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.drow.st-off .nm { color: var(--ink-3); }
-.tag {
-  font-size: .68rem; color: var(--ink-2); background: var(--raised-2);
-  border: 1px solid var(--hair); border-radius: var(--r-pill);
-  padding: 2px 9px; white-space: nowrap; flex-shrink: 0;
-}
-.drow .num { font-family: var(--mono); font-size: .78rem; color: var(--ink-2); width: 46px; text-align: start; flex-shrink: 0; }
-.drow .dots { color: var(--ink-3); padding: 4px 6px; border-radius: var(--r-sm); flex-shrink: 0; line-height: 1; }
-.drow .dots:hover { color: var(--ink); background: var(--raised-2); }
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip-mid  { background: var(--blue-dim); color: var(--blue); }
+.chip-time { background: var(--raised-2); color: var(--ink-2); }
+
+.rec-foot { display: flex; align-items: center; margin-top: auto; padding-top: 2px; }
+.rec-foot .sp { flex: 1; }
+.rec-foot .btn-primary { min-height: 38px; padding: 0 16px; font-size: .82rem; }
 
 /* row action menu */
 .rowmenu {
@@ -409,7 +410,7 @@ input, textarea, select { font-family: inherit; }
 .row > * { flex: 1; min-width: 110px; }
 
 .field select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%2371717A' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%235f6b67' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: left 10px center; background-size: 13px; padding-left: 30px;
 }
 [dir=rtl] .field select { background-position: left 10px center; }
@@ -425,19 +426,19 @@ input, textarea, select { font-family: inherit; }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
 .btn-primary {
-  background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600;
+  background: var(--blue-btn); border-color: var(--blue-btn); color: #fff; font-weight: 600;
   box-shadow: var(--shadow-sm);
 }
-.btn-primary:hover { background: #3f3f46; border-color: #3f3f46; color: #fff; }
+.btn-primary:hover { background: var(--blue-hover); border-color: var(--blue-hover); color: #fff; }
 .btn-ghost { background: transparent; }
 .btn-sm { padding: 5px 10px; font-size: .75rem; }
 .btn-danger { color: var(--red); border-color: transparent; background: transparent; }
-.btn-danger:hover { background: var(--red-dim); border-color: rgba(192,57,43,.28); color: var(--red); }
+.btn-danger:hover { background: var(--red-dim); border-color: var(--red-line); color: var(--red); }
 .btn-logout {
-  font-weight: 700; color: var(--red); border-color: rgba(192,57,43,.3);
+  font-weight: 700; color: var(--red); border-color: var(--red-line);
   background: var(--red-dim); letter-spacing: .01em;
 }
-.btn-logout:hover { background: rgba(192,57,43,.16); border-color: var(--red); color: var(--red); }
+.btn-logout:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
 .btn-add {
   width: 100%; border: 1px dashed var(--hair-2); background: transparent;
   color: var(--ink-3); margin-top: 8px; padding: 9px; font-size: .8rem;
@@ -533,7 +534,7 @@ input, textarea, select { font-family: inherit; }
 .dev-btn:hover { color: var(--ink-2); }
 .dev-btn.on { color: var(--blue); background: var(--blue-dim); border-color: var(--blue-line); }
 .vp-frame { flex: 1; min-height: 0; display: flex; justify-content: center; background: var(--canvas); }
-.viewport iframe { width: 100%; height: 100%; border: 0; background: #fff; transition: width .22s ease; }
+.viewport iframe { width: 100%; height: 100%; border: 0; background: var(--surface); transition: width .22s ease; }
 .viewport.mob iframe { width: 390px; max-width: 100%; border-inline: 1px solid var(--hair); }
 
 /* ─── Drawer ─────────────────────────────────────────────── */

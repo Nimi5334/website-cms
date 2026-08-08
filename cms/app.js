@@ -50,6 +50,8 @@ const ICON = {
   logout:  "M8 17.5H4.5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1H8M13 13.5l3.5-3.5-3.5-3.5M16.2 10H7.5",
   sun:     "M10 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM10 2v2M10 16v2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M2 10h2M16 10h2M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4",
   moon:    "M16.5 12.3A6.8 6.8 0 0 1 7.7 3.5a7 7 0 1 0 8.8 8.8z",
+  check:   "M4 10.5l4 4 8-9",
+  alert:   "M10 6.5v4.2M10 13.3h.01",
 };
 function icon(name, cls = "") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -649,11 +651,11 @@ function refreshStats() {
     el("div", { class: "spark", html: spark }));
 }
 
-/* ---------------- sections table ---------------- */
+/* ---------------- sections table (V4 zone-card grid) ---------------- */
 function sectionsTable(site) {
   site.sections = site.sections || [];
   const wrap = el("div", {});
-  const table = el("div", { class: "dtable" });
+  const table = el("div", { class: "recs" });
 
   function draw() {
     table.replaceChildren();
@@ -661,15 +663,23 @@ function sectionsTable(site) {
     site.sections.forEach((s, i) => {
       const st = sectionStatus(s);
       const n = sectionCount(s);
-      const row = el("div", {
-        class: "drow st-" + st,
-        onclick: (e) => { if (!e.target.closest(".dots")) openSectionDrawer(s, draw); },
-      },
-        el("span", { class: "nm" }, sectionName(s)),
-        el("span", { class: "tag" }, SECTION_LABELS[s.type] || s.type),
-        el("span", { class: "num" }, n ? String(n) : "—"),
-        el("button", { class: "dots", onclick: (e) => { e.stopPropagation(); rowMenu(e.currentTarget, s, i, draw); } }, "⋯"));
-      table.append(row);
+      const markIcon = st === "ok" ? icon("check") : st === "warn" ? icon("alert") : null;
+      const card = el("article", { class: "rec st-" + st },
+        el("div", { class: "rec-head" },
+          el("span", { class: "mark " + (st === "ok" ? "done" : st === "warn" ? "todo" : "") },
+            markIcon || "–"),
+          el("h3", {}, sectionName(s)),
+          el("button", {
+            class: "dots", "aria-label": "פעולות נוספות",
+            onclick: (e) => { e.stopPropagation(); rowMenu(e.currentTarget, s, i, draw); },
+          }, "⋯")),
+        el("div", { class: "chips" },
+          el("span", { class: "chip chip-mid" }, SECTION_LABELS[s.type] || s.type),
+          n ? el("span", { class: "chip chip-time" }, String(n)) : null),
+        el("div", { class: "rec-foot" },
+          el("span", { class: "sp" }),
+          el("button", { class: "btn btn-primary", onclick: () => openSectionDrawer(s, draw) }, "עריכה")));
+      table.append(card);
     });
   }
   draw();
