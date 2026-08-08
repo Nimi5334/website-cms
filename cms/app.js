@@ -11,7 +11,7 @@ import {
   SECTION_LABELS, ADDABLE_SECTIONS, DAY_NAMES, LABELS as L,
 } from "./schema.js";
 import {
-  supabaseReady, getSession, onAuthChange, signUp, signIn, signOut, fetchSite, upsertSite,
+  supabaseReady, getSession, onAuthChange, signUp, signIn, signOut, fetchSite, upsertSite, updatePassword,
 } from "./supabase.js";
 
 /* ---------------- DOM helper ---------------- */
@@ -52,6 +52,9 @@ const ICON = {
   moon:    "M16.5 12.3A6.8 6.8 0 0 1 7.7 3.5a7 7 0 1 0 8.8 8.8z",
   check:   "M4 10.5l4 4 8-9",
   alert:   "M10 6.5v4.2M10 13.3h.01",
+  edit:    "M4 16l.7-3.5L13.5 3.7a1.4 1.4 0 0 1 2 0l.8.8a1.4 1.4 0 0 1 0 2L7.5 15.3 4 16z M12 5.5l2.5 2.5",
+  settings:"M3 6h6M12.5 6h4.5M3 10.5h11.5M3 15h8.5M15 15h2",
+  chart:   "M4 16.5V9.5M9 16.5V4.5M14 16.5v-6M3 16.5h14",
 };
 function icon(name, cls = "") {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -74,7 +77,7 @@ const state = {
   dirty: false,
   busy: false,
   user: null, // { id, email } once signed in via Supabase
-  view: "sections",
+  view: "home",
   navOpen: false, // whether the nav drawer (hamburger menu) is currently open
   darkMode: false,
 };
@@ -280,7 +283,7 @@ function markDirty() {
     sessionSnapshotTaken = false; // next field touched starts a fresh undo point
   }, 700);
   clearTimeout(previewDebounce);
-  previewDebounce = setTimeout(() => { refreshStats(); if (previewOn) refreshPreview(); }, 420);
+  previewDebounce = setTimeout(() => { refreshStats(); if (state.view === "edit-site") refreshPreview(); }, 420);
 }
 
 /* Every ordinary field edit (text, color, select, checkbox…) goes through
@@ -360,14 +363,12 @@ function showVersions() {
 
 /* ---------------- user guide ---------------- */
 const GUIDE_SECTIONS = [
-  { icon: "layers",  title: "אזורי תוכן", body: "כאן בונים את הדף עצמו: לחצו על שורה כדי לפתוח עורך בצד ולערוך את התוכן שלה. \"הוספת אזור\" מוסיפה סוג תוכן חדש (תפריט, גלריה, סניפים ועוד). שכפול, מחיקה, הצגה/הסתרה והזזה למעלה/למטה זמינים דרך תפריט ⋯ שבכל שורה." },
-  { icon: "home",    title: "כללי", body: "שם העסק, לוגו, כותרת הדף וה־favicon — הגדרות בסיס שמופיעות בכל האתר ובלשונית הדפדפן." },
-  { icon: "palette", title: "עיצוב", body: "צבעי המותג, הגופנים, עיגול הפינות ותמונת הרקע לכל האתר נקבעים כאן. שינוי כאן משפיע מיידית על כל הדף." },
-  { icon: "menu",    title: "תפריט עליון", body: "הקישורים שמופיעים בסרגל הניווט העליון וכפתור הפעולה הראשי (CTA) שלצידם." },
-  { icon: "anchor",  title: "פוטר", body: "לוגו תחתון, קישורים לרשתות חברתיות, זכויות יוצרים וטקסט נוסף שמופיעים בתחתית כל עמוד." },
-  { icon: "eye",     title: "תצוגה מקדימה", body: "בצד שמאל רואים תצוגה חיה של האתר בזמן אמת, מתעדכנת תוך כדי עריכה. אפשר לעבור בין תצוגת מחשב לנייד בכפתורים שמעל התצוגה." },
-  { icon: "undo",    title: "ביטול והיסטוריה", body: "כל שינוי — כולל מחיקות — נשמר אוטומטית כגרסה. כפתור החץ מבטל מהר את הפעולה האחרונה, וכפתור \"היסטוריה\" מציג את כל הגרסאות השמורות לשחזור מלא." },
-  { icon: "upload",  title: "פרסום ושמירה", body: "השינויים נשמרים אוטומטית לחשבון שלכם תוך כדי עריכה. \"פרסום לאינטרנט\" מעלה את הגרסה הנוכחית לאתר החי; \"הורדת קובץ\" שומרת עותק מקומי (HTML עצמאי) למחשב." },
+  { icon: "home",    title: "בית", body: "דשבורד אמיתי: כמה אחוז מהאתר שלכם מוכן, מה כדאי לתקן קודם, אילו חלקים כבר גמורים, וקישור לנתוני מבקרים." },
+  { icon: "layers",  title: "עריכת תוכן", body: "כאן בונים את הדף עצמו: לחצו על שורה כדי לפתוח עורך בצד ולערוך את התוכן שלה. \"הוספת אזור\" מוסיפה סוג תוכן חדש (תפריט, גלריה, סניפים ועוד). שכפול, מחיקה, הצגה/הסתרה והזזה למעלה/למטה זמינים דרך תפריט ⋯ שבכל שורה." },
+  { icon: "edit",    title: "עריכת האתר", body: "תצוגה חיה של האתר האמיתי — לחצו על כל חלק בדף (כותרת, תמונה, טקסט) כדי לערוך אותו במקום. אפשר לעבור בין תצוגת מחשב לנייד בכפתורים שמעל התצוגה." },
+  { icon: "settings",title: "הגדרות", body: "שם העסק, לוגו, כותרת הדף וה-favicon, צבעי המותג והגופנים, תפריט עליון ופוטר, וגם חשבון (סיסמה, יציאה), גיבוי/ייבוא, ומצב כהה." },
+  { icon: "undo",    title: "ביטול והיסטוריה", body: "כל שינוי — כולל מחיקות — נשמר אוטומטית כגרסה. כפתור החץ מבטל מהר את הפעולה האחרונה, וכפתור \"היסטוריה\" (בהגדרות) מציג את כל הגרסאות השמורות לשחזור מלא." },
+  { icon: "upload",  title: "פרסום ושמירה", body: "השינויים נשמרים אוטומטית לחשבון שלכם תוך כדי עריכה. \"פרסום לאינטרנט\" מעלה את הגרסה הנוכחית לאתר החי; \"הורדת קובץ\" (בהגדרות) שומרת עותק מקומי (HTML עצמאי) למחשב." },
 ];
 
 function showGuide() {
@@ -385,18 +386,17 @@ function showGuide() {
     el("div", { class: "modal-head" }, el("span", {}, "מדריך למשתמש — איך בונים אתר"),
       el("button", { class: "btn btn-sm", onclick: close }, "סגירה")),
     el("div", { class: "guide-wrap" },
-      el("p", { class: "guide-intro" }, "המערכת בנויה מ־5 לשוניות בסרגל הצד. כל שינוי נשמר אוטומטית ואפשר לבטל כל פעולה בכל שלב — אפשר להתנסות בלי חשש."),
+      el("p", { class: "guide-intro" }, "המערכת בנויה מ־4 מקומות בסרגל הצד: בית, עריכת תוכן, עריכת האתר והגדרות. כל שינוי נשמר אוטומטית ואפשר לבטל כל פעולה בכל שלב — אפשר להתנסות בלי חשש."),
       grid));
   document.body.append(scrim, modal);
 }
 
 /* ---------------- deck shell ---------------- */
 const VIEWS = [
-  { key: "sections", label: "אזורים",  icon: "layers"  },
-  { key: "general",  label: "כללי",    icon: "home"    },
-  { key: "theme",    label: "עיצוב",   icon: "palette" },
-  { key: "nav",      label: "תפריט",   icon: "menu"    },
-  { key: "footer",   label: "פוטר",    icon: "anchor"  },
+  { key: "home",      label: "בית",         icon: "home"     },
+  { key: "sections",  label: "עריכת תוכן",  icon: "layers"   },
+  { key: "edit-site", label: "עריכת האתר",  icon: "edit"     },
+  { key: "settings",  label: "הגדרות",      icon: "settings" },
 ];
 
 let $previewFrame = null, $content = null, $statsEl = null, $rail = null, $navScrim = null;
@@ -453,19 +453,27 @@ function renderDeck() {
 
   const stage = el("main", { class: "stage" }, topline, $statsEl, $content, actionbar);
 
-  /* viewport */
-  const vpBar = el("div", { class: "vp-bar" },
-    el("span", { class: "lbl" }, "תצוגה חיה"),
-    el("button", { class: "dev-btn on", onclick: (e) => setDevice(e.currentTarget, false) }, "מחשב"),
-    el("button", { class: "dev-btn", onclick: (e) => setDevice(e.currentTarget, true) }, "נייד"));
-  const viewport = el("section", { class: "viewport" + (previewOn ? "" : " hide") },
-    vpBar, el("div", { class: "vp-frame" }, el("iframe", { title: "preview" })));
-  $previewFrame = viewport.querySelector("iframe");
-
-  $app.replaceChildren(el("div", { class: "deck" }, stage, viewport), $navScrim, $rail);
+  $app.replaceChildren(el("div", { class: "deck" }, stage), $navScrim, $rail);
   renderView();
   refreshStats();
-  if (previewOn) refreshPreview();
+}
+
+/* ---------------- site-editing view (dedicated live preview + click-to-edit) ----
+ * Was previously a togglable 46%-wide side panel next to every other view;
+ * now it's its own destination — the iframe mounts full-bleed inside
+ * $content only while state.view === "edit-site", and refreshPreview()/the
+ * postMessage click-to-edit handlers below all key off the same module-level
+ * $previewFrame regardless of where it's currently mounted. */
+function editSiteView() {
+  const vpBar = el("div", { class: "vp-bar" },
+    el("span", { class: "lbl" }, "לחצו על כל חלק באתר כדי לערוך אותו"),
+    el("button", { class: "dev-btn on", onclick: (e) => setDevice(e.currentTarget, false) }, "מחשב"),
+    el("button", { class: "dev-btn", onclick: (e) => setDevice(e.currentTarget, true) }, "נייד"));
+  const frame = el("div", { class: "edit-site-view" },
+    vpBar, el("div", { class: "vp-frame" }, el("iframe", { title: "preview" })));
+  $previewFrame = frame.querySelector("iframe");
+  refreshPreview();
+  return frame;
 }
 
 /* ---------------- nav drawer open/close + drag-to-close ----------------
@@ -542,17 +550,6 @@ function buildRail() {
   }
   $rail.append(navGroup);
 
-  /* preview group */
-  const viewGroup = el("div", { class: "rail-group" });
-  viewGroup.append(el("div", { class: "rail-heading" }, "תצוגה"));
-  viewGroup.append(el("button", {
-    class: "rail-btn" + (previewOn ? " on" : ""),
-    style: `--i:${stagger++}`,
-    title: "תצוגה חיה",
-    onclick: togglePreview,
-  }, icon("eye"), el("span", {}, "תצוגה חיה")));
-  $rail.append(viewGroup);
-
   $rail.append(el("div", { class: "rail-sep" }));
 
   /* bottom-pinned: guide + logout, mirrors settings/log-out convention */
@@ -571,7 +568,7 @@ function buildRail() {
 }
 
 function setDevice(btn, mobile) {
-  const vp = document.querySelector(".viewport");
+  const vp = document.querySelector(".edit-site-view");
   if (!vp) return;
   vp.classList.toggle("mob", mobile);
   vp.querySelectorAll(".dev-btn").forEach((b) => b.classList.toggle("on", b === btn));
@@ -581,12 +578,16 @@ function renderView() {
   if (!$content) return;
   const site = state.site;
   $content.replaceChildren();
+  // Stats strip + action bar only make sense for the content-editing view —
+  // home has its own dashboard cards, edit-site is a full-bleed live preview,
+  // settings is a plain field list.
+  if ($statsEl) $statsEl.classList.toggle("hide", state.view !== "sections");
+  document.querySelector(".actionbar")?.classList.toggle("hide", state.view === "edit-site");
   switch (state.view) {
-    case "sections": $content.append(sectionsTable(site)); break;
-    case "general":  $content.append(el("div", { class: "pad" }, ...panelGeneral(site))); break;
-    case "theme":    $content.append(el("div", { class: "pad" }, ...panelTheme(site)));   break;
-    case "nav":      $content.append(el("div", { class: "pad" }, ...panelNav(site)));     break;
-    case "footer":   $content.append(el("div", { class: "pad" }, ...panelFooter(site)));  break;
+    case "home":      $content.append(panelHome(site)); break;
+    case "sections":  $content.append(sectionsTable(site)); break;
+    case "edit-site": $content.append(editSiteView()); break;
+    case "settings":  $content.append(el("div", { class: "pad settings-pad" }, ...panelSettings(site))); break;
   }
 }
 
@@ -649,6 +650,129 @@ function refreshStats() {
     el("div", { class: "stat" }, el("span", { class: "k" }, "תמונות"), el("span", { class: "v" }, String(imgs))),
     el("div", { class: "stat" }, el("span", { class: "k" }, "דורש השלמה"), el("span", { class: "v" + (needs ? " amber" : "") }, String(needs))),
     el("div", { class: "spark", html: spark }));
+}
+
+/* ---------------- home dashboard (real completeness score, no fabricated numbers) ----
+ * Every check below reads real state.site data — the same fields the owner
+ * edits elsewhere in the app. Hidden sections (visible:false) are excluded
+ * entirely rather than counted as gaps, since hiding a section is a
+ * deliberate choice, not an incomplete one. */
+function sectionGapReason(s) {
+  switch (s.type) {
+    case "hero":      return "הכותרת הראשית היא הדבר הראשון שלקוח רואה — בלעדיה האתר נראה לא גמור.";
+    case "richtext":  return "הסיפור שלכם עוזר ללקוחות להכיר אתכם ולבחור בכם על פני המתחרים.";
+    case "menu":      return "בלי תפריט, לקוחות לא יכולים לדעת מה אתם מוכרים.";
+    case "gallery":   return "תמונות טובות הן המקום הראשון שלקוחות מסתכלים עליו.";
+    case "media":     return "וידאו או תמונה גדולה עוזרים ללקוחות להרגיש את האווירה של העסק.";
+    case "locations": return "בלי כתובת ושעות פתיחה, לקוחות לא יידעו איך ומתי להגיע.";
+    case "social":    return "קישורים לרשתות חברתיות עוזרים ללקוחות לעקוב ולהמליץ עליכם.";
+    default:          return "האזור הזה עדיין ריק.";
+  }
+}
+const GAP_PRIORITY = { gallery: 5, hero: 5, menu: 4, locations: 4, social: 3, richtext: 2, media: 2 };
+
+function computeSeoChecklist(site) {
+  const meta = site.meta || {}, brand = site.brand || {}, footer = site.footer || {};
+  const checks = [
+    { id: "brand-name",  ok: !!brand.name?.trim(),  label: "שם העסק",
+      why: "שם העסק מופיע בכל מקום באתר ובתוצאות החיפוש.", view: "settings", field: "name", pri: 1 },
+    { id: "meta-title",  ok: !!meta.title?.trim(),  label: "כותרת הדף בגוגל",
+      why: "זו הכותרת שמופיעה בתוצאות החיפוש וב-tab בדפדפן.", view: "settings", field: "title", pri: 2 },
+    { id: "meta-desc",   ok: !!(meta.description && meta.description.trim().length >= 50), label: "תיאור לגוגל",
+      why: "תיאור קצר מדי (או חסר) פוגע בסיכוי שלקוחות ילחצו על התוצאה שלכם בגוגל.", view: "settings", field: "description", pri: 3 },
+    { id: "meta-favicon", ok: !!meta.favicon, label: "אייקון האתר (favicon)",
+      why: "האייקון הקטן שמופיע בלשונית הדפדפן וברשימת המועדפים.", view: "settings", field: "favicon", pri: 1 },
+    { id: "footer-copyright", ok: !!footer.copyright?.trim(), label: "זכויות יוצרים בפוטר",
+      why: "שורת זכויות יוצרים היא תקן בסיסי לאתר עסקי אמין.", view: "settings", field: "copyright", pri: 1 },
+  ];
+  (site.sections || []).forEach((s) => {
+    if (s.visible === false) return;
+    checks.push({
+      id: "section-" + s.id, ok: sectionStatus(s) === "ok", label: sectionName(s),
+      why: sectionGapReason(s), view: "sections", sectionId: s.id,
+      pri: GAP_PRIORITY[s.type] || 2,
+    });
+  });
+  return checks;
+}
+function computeSeoScore(site) {
+  const checks = computeSeoChecklist(site);
+  const pct = checks.length ? Math.round((checks.filter((c) => c.ok).length / checks.length) * 100) : 0;
+  return { pct, checks };
+}
+
+function panelHome(site) {
+  const { pct, checks } = computeSeoScore(site);
+  const gaps = checks.filter((c) => !c.ok).sort((a, b) => b.pri - a.pri);
+  const done = checks.filter((c) => c.ok);
+  const CIRC = 315; // 2*pi*50 (r=50)
+
+  const gotoCheck = (c) => {
+    state.view = c.view; buildRail(); renderView();
+    if (c.sectionId) {
+      const s = (site.sections || []).find((x) => x.id === c.sectionId);
+      if (s) openSectionDrawer(s, () => renderView());
+    } else if (c.field) {
+      signalFieldSoon(c.field);
+    }
+  };
+
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const svgTag = (tag, attrs) => {
+    const n = document.createElementNS(SVGNS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    return n;
+  };
+  const ringSvg = svgTag("svg", { width: "116", height: "116", viewBox: "0 0 116 116", "aria-hidden": "true" });
+  ringSvg.append(
+    svgTag("circle", { class: "ring-bg", cx: "58", cy: "58", r: "50", fill: "none", "stroke-width": "9" }),
+    svgTag("circle", {
+      class: "ring-fg", cx: "58", cy: "58", r: "50", fill: "none", "stroke-width": "9",
+      "stroke-dasharray": CIRC, "stroke-dashoffset": CIRC - (CIRC * pct) / 100,
+    }));
+  const ring = el("div", { class: "ring-wrap" },
+    ringSvg,
+    el("div", { class: "ring-num" }, el("span", { class: "n mono" }, pct + "%"), el("span", { class: "l" }, "הושלם")));
+
+  const headline = pct >= 90
+    ? "האתר שלכם מוכן!" : pct >= 60 ? "האתר שלכם כמעט מוכן" : "בואו נשלים את האתר שלכם";
+  const topGap = gaps[0];
+  const head = el("div", { class: "card headline" },
+    ring,
+    el("div", {},
+      el("h1", {}, headline),
+      el("p", { class: "sub" }, gaps.length
+        ? `נשארו ${gaps.length} דברים שמשפיעים ישירות על כמה לקוחות פונים אליכם.`
+        : "כל החלקים החשובים באתר מלאים. אפשר להמשיך לעדכן תוכן בכל זמן."),
+      topGap ? el("div", { class: "next", onclick: () => gotoCheck(topGap) },
+        el("b", {}, "הכי משתלם עכשיו: "), topGap.label) : null));
+
+  const recCards = gaps.slice(0, 6).map((c, i) =>
+    el("article", { class: "rec" + (i === 0 ? " wide" : "") },
+      el("div", { class: "rec-head" },
+        el("span", { class: "mark todo" }, icon("alert")),
+        el("h3", {}, c.label)),
+      el("p", { class: "why" }, c.why),
+      el("div", { class: "rec-foot" }, el("span", { class: "sp" }),
+        el("button", { class: "btn btn-primary", onclick: () => gotoCheck(c) }, "לתקן עכשיו"))));
+  const recsGrid = el("div", { class: "recs" }, ...recCards);
+
+  const doneSection = done.length ? el("div", {},
+    el("div", { class: "sec-title" }, "כבר מוכן"),
+    el("div", { class: "card done-list" },
+      ...done.map((c) => el("div", { class: "done-row" },
+        el("span", { class: "mark done" }, icon("check")),
+        el("span", { class: "t" }, c.label))))) : null;
+
+  const analyticsCard = el("div", { class: "card analytics-card" },
+    el("div", { class: "rec-head" }, el("span", { class: "mark" }, icon("chart")), el("h3", {}, "מבקרים באתר")),
+    el("p", { class: "why" },
+      "כדי לראות כמה מבקרים יש באתר, מפעילים פעם אחת Web Analytics (חינמי) בפרויקט ה-Vercel שלכם — האתר כבר מוכן לזה."),
+    el("div", { class: "rec-foot" }, el("span", { class: "sp" }),
+      el("a", { class: "btn btn-primary", href: "https://vercel.com/docs/analytics/quickstart", target: "_blank", rel: "noopener" },
+        "איך מפעילים")));
+
+  return el("div", { class: "pad home-pad" }, head, recsGrid, analyticsCard, doneSection);
 }
 
 /* ---------------- sections table (V4 zone-card grid) ---------------- */
@@ -753,7 +877,7 @@ function openSectionDrawer(s, redraw) {
     onCancel: () => {
       Object.keys(s).forEach((k) => delete s[k]);
       Object.assign(s, before);
-      persistNow(state.site); redraw(); refreshStats(); if (previewOn) refreshPreview();
+      persistNow(state.site); redraw(); refreshStats(); if (state.view === "edit-site") refreshPreview();
       setStatus("השינויים בוטלו", "");
     },
   });
@@ -992,6 +1116,83 @@ function panelFooter(site) {
           el("div", { class: "row" }, textField(l, "label", "טקסט"), textField(l, "href", "יעד")),
           el("label", { class: "toggle" }, checkbox(l, "external"), "נפתח בלשונית חדשה")),
       })),
+  ];
+}
+
+/* ---------------- settings (everything CMS-related, not site content) ----
+ * Composes the four existing content panels (brand/SEO, theme, nav, footer
+ * — unchanged, still writing the exact same state.site paths render.mjs
+ * reads) plus new groups for things that had no home anywhere before:
+ * account, backup/import, and help. */
+function panelAccount() {
+  const email = state.user?.email || "";
+  const pw1 = el("input", { type: "password", autocomplete: "new-password", placeholder: "סיסמה חדשה" });
+  const pw2 = el("input", { type: "password", autocomplete: "new-password", placeholder: "אימות סיסמה" });
+  const pwMsg = el("p", { class: "hint" }, "");
+  const pwBtn = el("button", { class: "btn", type: "button" }, "עדכון סיסמה");
+  pwBtn.addEventListener("click", async () => {
+    pwMsg.textContent = "";
+    if (pw1.value.length < 6) { pwMsg.textContent = "הסיסמה חייבת להיות באורך 6 תווים לפחות."; return; }
+    if (pw1.value !== pw2.value) { pwMsg.textContent = "הסיסמאות לא תואמות."; return; }
+    pwBtn.disabled = true;
+    try {
+      const { error } = await updatePassword(pw1.value);
+      if (error) throw error;
+      pw1.value = ""; pw2.value = "";
+      pwMsg.textContent = "הסיסמה עודכנה ✓";
+    } catch (err) {
+      pwMsg.textContent = "שגיאה בעדכון הסיסמה: " + err.message;
+    } finally {
+      pwBtn.disabled = false;
+    }
+  });
+  return [
+    ...group("חשבון",
+      el("div", { class: "field" }, el("label", {}, "כתובת אימייל"),
+        el("input", { type: "text", value: email, disabled: true })),
+      el("div", { class: "row" }, el("div", { class: "field" }, pw1), el("div", { class: "field" }, pw2)),
+      pwBtn, pwMsg,
+      el("button", {
+        class: "btn btn-logout", type: "button", style: "margin-top:10px",
+        onclick: async () => { await signOut(); state.user = null; boot(); },
+      }, L.logout)),
+  ];
+}
+function panelBackup() {
+  return [
+    ...group("גיבוי וייבוא",
+      el("p", { class: "hint" }, "הורידו קובץ HTML עצמאי של האתר הנוכחי, או טענו אתר קיים לעריכה."),
+      el("div", { class: "row" },
+        el("button", { class: "btn", type: "button", onclick: downloadFile }, "הורדת קובץ"),
+        el("button", { class: "btn", type: "button", onclick: importFromFile }, "ייבוא אתר קיים"))),
+  ];
+}
+function panelHelp() {
+  return [
+    ...group("עזרה ותיעוד",
+      el("div", { class: "row" },
+        el("button", { class: "btn", type: "button", onclick: showGuide }, "מדריך למשתמש"),
+        el("button", { class: "btn", type: "button", onclick: showVersions }, "היסטוריית גרסאות"))),
+    ...group("תצוגה",
+      el("label", { class: "toggle" },
+        (() => {
+          const cb = el("input", { type: "checkbox" });
+          cb.checked = state.darkMode;
+          cb.addEventListener("change", toggleTheme);
+          return cb;
+        })(),
+        "מצב כהה")),
+  ];
+}
+function panelSettings(site) {
+  return [
+    ...panelGeneral(site),
+    ...panelTheme(site),
+    ...panelNav(site),
+    ...panelFooter(site),
+    ...panelAccount(),
+    ...panelBackup(),
+    ...panelHelp(),
   ];
 }
 
@@ -1335,13 +1536,6 @@ const ASSET_BASE_MAP = {
   "b07e58c7-7bce-4b4b-a585-c590051ff9fa": "https://truck-bamoshava-website.vercel.app/",
 };
 
-let previewOn = window.innerWidth > 1100;
-async function togglePreview() {
-  previewOn = !previewOn;
-  document.querySelector(".viewport")?.classList.toggle("hide", !previewOn);
-  buildRail();
-  if (previewOn) await refreshPreview();
-}
 /* Click-to-edit overlay injected ONLY into the CMS's own live-preview iframe
  * (never into the real published/downloaded HTML — buildHtml() is a
  * completely separate code path that never sees this). Lets the owner click
@@ -1403,14 +1597,22 @@ window.addEventListener("message", (e) => {
   const d = e.data;
   if (!d || d.source !== "cms-preview") return;
   if (d.type === "edit-section") editSectionById(d.id, d.field);
-  else if (d.type === "edit-nav") { state.view = "nav"; buildRail(); renderView(); }
-  else if (d.type === "edit-footer") { state.view = "footer"; buildRail(); renderView(); signalFieldSoon(d.field); }
-  else if (d.type === "edit-general") { state.view = "general"; buildRail(); renderView(); signalFieldSoon(d.field); }
+  else if (d.type === "edit-nav" || d.type === "edit-footer" || d.type === "edit-general") {
+    // Nav/footer/brand fields now live under Settings (no dedicated view of
+    // their own anymore) — jump there, but keep the preview mounted where
+    // it was so clicking a header link doesn't lose the live-preview context
+    // more than necessary.
+    state.view = "settings"; buildRail(); renderView();
+    if (d.field) signalFieldSoon(d.field);
+  }
 });
 function editSectionById(id, field) {
   const s = (state.site.sections || []).find((x) => x.id === id);
   if (!s) return;
-  state.view = "sections"; buildRail(); renderView();
+  // Deliberately does NOT touch state.view: this fires from clicks inside
+  // the live-preview iframe, which only exists while state.view is
+  // "edit-site" — the drawer is a fixed-position overlay (see openDrawer()),
+  // so it opens right on top of the preview without navigating away from it.
   openSectionDrawer(s, () => renderView());
   if (field) signalFieldSoon(field);
 }
@@ -1457,7 +1659,16 @@ async function refreshPreview() {
     const [{ render }, tplRes] = await Promise.all([import("../render.mjs"), fetch(templateUrl())]);
     if (!tplRes.ok) throw new Error("template " + tplRes.status);
     const template = await tplRes.text();
-    const html = render(state.site, template).replace("</body>", PREVIEW_EDIT_OVERLAY + "</body>");
+    // Strip the Vercel Web Analytics snippet from the CMS's own preview —
+    // it shares template.html with the real published site, but a preview
+    // reload on every keystroke must never send a real pageview beacon
+    // (worse: with ASSET_BASE_MAP mapping the <base href> to the actual
+    // customer domain below, an un-stripped script would attribute those
+    // beacons to the owner's real analytics, not the CMS's).
+    const noAnalytics = template.replace(
+      /<script>window\.va[\s\S]*?<\/script>\s*<script defer src="\/_vercel\/insights\/script\.js"><\/script>\s*/,
+      "");
+    const html = render(state.site, noAnalytics).replace("</body>", PREVIEW_EDIT_OVERLAY + "</body>");
     const mapped = state.user && ASSET_BASE_MAP[state.user.id];
     const assetBase = mapped || (() => {
       const base = new URL(templateUrl());

@@ -10,6 +10,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="{{FONTS_HREF}}" rel="stylesheet">
+<!-- Vercel Web Analytics — vanilla-HTML integration (no build step, no
+     npm package). Loads /_vercel/insights/script.js, which Vercel serves
+     automatically for any deployment; it's a no-op until Web Analytics is
+     turned on for the project in the Vercel dashboard. See the CMS's own
+     "בית" (Home) dashboard for the one-time enable link. -->
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
 /* ============ Design tokens ============ */
 :root{

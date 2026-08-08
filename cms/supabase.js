@@ -39,6 +39,9 @@ export function signIn(email, password) {
 export function signOut() {
   return supabase.auth.signOut();
 }
+export function updatePassword(newPassword) {
+  return supabase.auth.updateUser({ password: newPassword });
+}
 
 /** Returns the saved site_json for this user, or null if they have no row yet. */
 export async function fetchSite(userId) {

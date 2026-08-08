@@ -37,8 +37,10 @@
   --amber-dim: rgba(138,97,18,0.10);
   --amber-line:rgba(138,97,18,0.28);
 
-  --green:     #15803D;
-  --green-dim: rgba(21,128,61,0.10);
+  --green:     #127035;
+  --green-btn: #127035;
+  --green-dim: rgba(18,112,53,0.10);
+  --green-line:rgba(18,112,53,0.28);
   --red:       #A8412C;
   --red-dim:   rgba(168,65,44,0.10);
   --red-line:  rgba(168,65,44,.28);
@@ -87,7 +89,9 @@ html.dark {
   --amber-line:rgba(224,172,78,.35);
 
   --green:     #46B87A;
+  --green-btn: #268052;
   --green-dim: rgba(70,184,122,.14);
+  --green-line:rgba(70,184,122,.35);
   --red:       #E0836F;
   --red-dim:   rgba(224,131,111,.14);
   --red-line:  rgba(224,131,111,.28);
@@ -288,7 +292,7 @@ input, textarea, select { font-family: inherit; }
   font-size: .72rem; padding: 3px 10px; border-radius: var(--r-pill);
   border: 1px solid transparent; white-space: nowrap; transition: all .15s;
 }
-.chip.ok    { color: var(--green); background: var(--green-dim); border-color: rgba(21,128,61,.25); }
+.chip.ok    { color: var(--green); background: var(--green-dim); border-color: var(--green-line); }
 .chip.warn  { color: var(--amber); background: var(--amber-dim); border-color: var(--amber-line); }
 .chip.err   { color: var(--red);   background: var(--red-dim);   border-color: var(--red-line); }
 .chip:empty { display: none; }
@@ -342,7 +346,7 @@ input, textarea, select { font-family: inherit; }
   border: 1.5px solid var(--hair-2); color: var(--ink-3); font-size: .75rem;
 }
 .mark svg { width: 14px; height: 14px; stroke-width: 2.2; }
-.mark.done { background: var(--green); border-color: var(--green); color: #fff; }
+.mark.done { background: var(--green-btn); border-color: var(--green-btn); color: #fff; }
 .mark.todo { background: var(--amber-dim); border-color: var(--amber-line); color: var(--amber); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -352,6 +356,42 @@ input, textarea, select { font-family: inherit; }
 .rec-foot { display: flex; align-items: center; margin-top: auto; padding-top: 2px; }
 .rec-foot .sp { flex: 1; }
 .rec-foot .btn-primary { min-height: 38px; padding: 0 16px; font-size: .82rem; }
+.rec.wide { grid-column: 1 / -1; }
+
+/* ─── Home dashboard ─────────────────────────────────────── */
+.home-pad, .settings-pad { padding: 20px; max-width: 900px; }
+.settings-pad { max-width: 640px; }
+.card {
+  background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+}
+.headline {
+  display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 22px; align-items: center;
+  padding: 22px 24px; margin-bottom: 16px;
+}
+.headline h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -.01em; }
+.headline .sub { color: var(--ink-2); margin-top: 6px; font-size: .86rem; line-height: 1.5; }
+.next {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; cursor: pointer;
+  background: var(--amber-dim); border: 1px solid var(--amber-line); border-radius: var(--r-sm);
+  padding: 8px 12px; font-size: .82rem; transition: border-color .14s;
+}
+.next:hover { border-color: var(--amber); }
+.next b { color: var(--amber); }
+.ring-wrap { position: relative; width: 116px; height: 116px; flex-shrink: 0; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.ring-bg { stroke: var(--hair-2); }
+.ring-fg { stroke: var(--blue); stroke-linecap: round; transition: stroke-dashoffset .9s cubic-bezier(.32,1.1,.44,1); }
+.ring-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring-num .n { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; }
+.ring-num .l { font-size: .68rem; color: var(--ink-3); margin-top: 2px; }
+.home-pad .recs { margin: 0 0 16px; }
+.analytics-card { padding: 18px 20px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.analytics-card .rec-head .mark { background: var(--blue-dim); border-color: var(--blue-line); color: var(--blue); }
+.done-list { padding: 4px 20px; }
+.done-row { display: flex; align-items: center; gap: 11px; padding: 12px 0; border-bottom: 1px solid var(--hair); }
+.done-row:last-child { border-bottom: none; }
+.done-row .t { font-size: .87rem; font-weight: 500; }
 
 /* row action menu */
 .rowmenu {
@@ -516,17 +556,17 @@ input, textarea, select { font-family: inherit; }
 }
 .tag-pick .toggle:hover { border-color: var(--blue-line); background: var(--blue-dim); }
 
-/* ─── Preview viewport ───────────────────────────────────── */
-.viewport {
-  width: 46%; flex-shrink: 0; display: flex; flex-direction: column;
-  border-inline-end: 1px solid var(--hair); background: var(--canvas);
-}
-.viewport.hide { display: none !important; }
+/* ─── Site-editing view (dedicated, full-bleed live preview) ───
+   Was a togglable 46%-wide side panel next to every other view; now the
+   sole content of the "עריכת האתר" destination — fills $content edge to
+   edge, no scroll on the .content wrapper itself (the iframe scrolls). */
+.content:has(.edit-site-view) { overflow: hidden; }
+.edit-site-view { height: 100%; display: flex; flex-direction: column; }
 .vp-bar {
-  height: 40px; flex-shrink: 0; display: flex; align-items: center; gap: 5px;
-  padding: 0 12px; border-bottom: 1px solid var(--hair); background: var(--surface);
+  height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+  padding: 0 16px; border-bottom: 1px solid var(--hair); background: var(--surface);
 }
-.vp-bar .lbl { font-size: .68rem; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; margin-inline-end: auto; }
+.vp-bar .lbl { font-size: .78rem; color: var(--ink-2); font-weight: 500; margin-inline-end: auto; }
 .dev-btn {
   font-size: .73rem; color: var(--ink-3); padding: 4px 11px; border-radius: var(--r-pill);
   border: 1px solid transparent; transition: color .12s, background .12s;
@@ -534,8 +574,8 @@ input, textarea, select { font-family: inherit; }
 .dev-btn:hover { color: var(--ink-2); }
 .dev-btn.on { color: var(--blue); background: var(--blue-dim); border-color: var(--blue-line); }
 .vp-frame { flex: 1; min-height: 0; display: flex; justify-content: center; background: var(--canvas); }
-.viewport iframe { width: 100%; height: 100%; border: 0; background: var(--surface); transition: width .22s ease; }
-.viewport.mob iframe { width: 390px; max-width: 100%; border-inline: 1px solid var(--hair); }
+.edit-site-view iframe { width: 100%; height: 100%; border: 0; background: var(--surface); transition: width .22s ease; }
+.edit-site-view.mob iframe { width: 390px; max-width: 100%; border-inline: 1px solid var(--hair); }
 
 /* ─── Drawer ─────────────────────────────────────────────── */
 .scrim {
